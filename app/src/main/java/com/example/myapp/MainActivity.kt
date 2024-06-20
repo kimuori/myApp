@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,12 +22,13 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ComposeCompilerApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,11 +91,14 @@ class MainActivity : AppCompatActivity() {
                                 onDismissRequest = { showBottomSheet = false },
                                 sheetState = sheetState
                             ) {
-                                TextField(
+                                OutlinedTextField(
                                     value = textValueField,
                                     onValueChange = {textValueField = it},
                                     label = {Text("New Todo")},
-                                    trailingIcon = {Icon(painter = painterResource(id = R.drawable.outline_cancel_24dp), contentDescription = "clear")},
+                                    trailingIcon = {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.outline_cancel_24dp),
+                                            contentDescription = "clear")},
                                     singleLine = true,
                                     modifier = Modifier
                                         .fillMaxWidth()
