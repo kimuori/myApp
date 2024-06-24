@@ -1,3 +1,53 @@
+/*
+    Requirements:
+    Asg 1
+        * One screen
+        * main screen has a top bar, it will have the name of the app
+        * to add a new todo item:
+            ** bottom sheet pops up by clicking a floating action button with the "+" icon
+
+            ** user will be able to:
+                - the "x" button will clear the text field
+                - the save button will be saved at the bottom of the list. The bottom sheet is dismissed.
+                - the cancel button does not save to the list. The bottom sheet is dismissed.
+
+         * main screen has a list of todo items:
+            ** todo item will have a text which will be the todo item name
+            ** todo item will have a checkbox which can be toggle
+                - check = item completed
+                - uncheck = item uncompleted
+
+    Compose:
+        * save button must be filled
+        * cancel button must be unfilled, have an outline
+        * textfield must be an outline text field
+        * todo items must have 12dp horizontal padding
+
+    Functional UI:
+        * tapping todo item check box must togle the check box state
+        * tapping floating action button brings up bottom sheet
+        * typing text must update the contents of the text field
+        * tapping on the save button must add the todo and
+          update the list with the new todo in an UNCOMPLETED state.
+              - it must close the bottom sheet
+              - if there is NO TEXT when the button is tapped, UI must show error.
+                  NOTE: Can it be a pop up dialogue?
+        * tapping cancel button closes the bottom sheet, nothing is added
+        * tapping the "x" icon clears the text field
+
+    NOTES:
+    * allowed to use place holder data and data structures
+    * strings must be in strangs.xml
+    * check many times what I push to GitHub is what I expect
+    * submit the the link to the Merge Request--any other links is a penalty
+    * branch name is correct
+
+    Reference:
+    https://medium.com/geekculture/add-remove-in-lazycolumn-list-aka-recyclerview-jetpack-compose-7c4a2464fc9f
+
+
+
+ */
 package com.example.myapp
 
 import android.annotation.SuppressLint
@@ -13,6 +63,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -80,14 +131,8 @@ class MainActivity : AppCompatActivity() {
 
                     ){
                         innerPadding ->
-                        Column(
-                            modifier = Modifier
-                                .padding(12.dp, 12.dp)
-                                .background(color = Color.Green)
-                                .verticalScroll(rememberScrollState()) //added scroll in case it is not working
-                                .fillMaxSize()) {
-                            ColumnView()
-                        }
+                        ColumnView()
+                        //ColumnTodoListView()
 
                         if (showBottomSheet){
                             ModalBottomSheet(
@@ -148,8 +193,28 @@ class MainActivity : AppCompatActivity() {
 
 @Composable
 private fun ColumnView(){
-    for( i in 0..10 ) {
-        TodoList()
+    Column(
+        modifier = Modifier
+            .padding(12.dp, 12.dp)
+            .background(color = Color.Green)
+            .verticalScroll(rememberScrollState()) //added scroll in case it is not working
+            .fillMaxSize()) {
+        for( i in 0..10 ) {
+            TodoList()
+        }
+    }
+
+}
+
+
+@Composable
+private fun ColumnTodoListView(){
+    LazyColumn(modifier = Modifier
+        .padding(12.dp, 12.dp)
+        .background(color = Color.Green)
+        .verticalScroll(rememberScrollState()) //added scroll in case it is not working
+        .fillMaxSize()) {
+        item {  }
     }
 }
 
