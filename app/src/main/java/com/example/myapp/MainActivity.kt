@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
                         topBar = {
                             TopAppBar(
                                 title = {
-                                    Text(text= stringResource(id = R.string.top_bar_header))}
+                                    Text(text= stringResource(id = R.string.topbar_header))}
                             )},
 
                         floatingActionButton = {
@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity() {
                                 OutlinedTextField(
                                     value = textValueField,
                                     onValueChange = {textValueField = it},
-                                    label = {Text(text= stringResource(id = R.string.text_field_value))},
+                                    label = {Text(text= stringResource(id = R.string.outlinedtextfield_label))},
                                     trailingIcon = {
                                         Icon(
                                             painter = painterResource(id = R.drawable.outline_cancel_24dp),
@@ -120,7 +120,7 @@ class MainActivity : AppCompatActivity() {
                                         .fillMaxWidth()
                                         .padding(12.dp, 12.dp)
                                 ) {
-                                    Text("Save")
+                                    Text(text= stringResource(id = R.string.bottomsheet_button_save))
                                 }
                                 OutlinedButton(
                                     onClick = {
@@ -134,7 +134,7 @@ class MainActivity : AppCompatActivity() {
                                         .fillMaxWidth()
                                         .padding(12.dp, 12.dp)
                                 ) {
-                                    Text("Cancel")
+                                    Text(text= stringResource(id = R.string.bottomsheet_outlinedbutton_cancel))
                                 }
                             }
                         }
