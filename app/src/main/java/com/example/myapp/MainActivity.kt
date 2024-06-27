@@ -24,7 +24,7 @@
         * todo items must have 12dp horizontal padding
 
     Functional UI:
-        * tapping todo item check box must togle the check box state
+        * tapping todo item check box must toggle the check box state
         * tapping floating action button brings up bottom sheet
         * typing text must update the contents of the text field
         * tapping on the save button must add the todo and
@@ -37,14 +37,14 @@
 
     NOTES:
     * allowed to use place holder data and data structures
-    * strings must be in strangs.xml
+    * strings must be in strings.xml
     * check many times what I push to GitHub is what I expect
     * submit the the link to the Merge Request--any other links is a penalty
     * branch name is correct
 
     Reference:
     https://medium.com/geekculture/add-remove-in-lazycolumn-list-aka-recyclerview-jetpack-compose-7c4a2464fc9f
-
+    https://stackoverflow.com/questions/68482228/how-to-clear-textfield-value-in-jetpack-compose
 
 
  */
@@ -55,6 +55,7 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -109,6 +110,7 @@ class MainActivity : AppCompatActivity() {
                     val scope = rememberCoroutineScope()
                     var showBottomSheet by remember { mutableStateOf(false)}
                     var textValueField by remember { mutableStateOf(TextFieldValue(""))
+
                     }
                     Scaffold(
                         topBar = {
@@ -134,30 +136,56 @@ class MainActivity : AppCompatActivity() {
                         ColumnView()
                         //ColumnTodoListView()
 
+                        //if FOA is clicked, show the BottomSheet
                         if (showBottomSheet){
                             ModalBottomSheet(
                                 onDismissRequest = { showBottomSheet = false },
                                 sheetState = sheetState
                             ) {
+
+                                //To-do List text value field with trailing "x" icon
                                 OutlinedTextField(
                                     value = textValueField,
                                     onValueChange = {textValueField = it},
                                     label = {Text(text= stringResource(id = R.string.outlinedtextfield_label))},
+
+                                    /* TODO:
+                                       The "x" button will clear the text field.
+                                       **If there is NO TEXT when the button is tapped,
+                                         UI must show error. (Can it be a pop up dialogue?)
+
+                                     */
+                                    //"x" icon clear string functionality
                                     trailingIcon = {
                                         Icon(
                                             painter = painterResource(id = R.drawable.outline_cancel_24dp),
-                                            contentDescription = "clear")},
+                                            contentDescription = "clear text",
+                                            //textValueField is now a blank string upon clicking
+                                            modifier = Modifier.clickable { textValueField = TextFieldValue("") }
+                                        )
+                                    },
                                     singleLine = true,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(12.dp, 12.dp)
                                 )
                                 Spacer(modifier = Modifier.size(12.dp))
+
+                                //To-do List Save button
                                 Button(
                                     onClick = {
                                         scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                            /* TODO:
+                                               Tapping on the save button must add the to-do
+                                               and update the list with the new to-do in an
+                                               UNCOMPLETED state.
+
+                                               **It must close the bottom sheet
+                                               **If there is NO TEXT when the button is tapped,
+                                                 UI must show error. (Can it be a pop up dialogue?)
+                                             */
                                             if (!sheetState.isVisible) {
-                                                showBottomSheet = false
+                                                showBottomSheet = false //temp
                                             }
                                         }
                                     },
@@ -167,9 +195,15 @@ class MainActivity : AppCompatActivity() {
                                 ) {
                                     Text(text= stringResource(id = R.string.bottomsheet_button_save))
                                 }
+
+                                //To-do List Cancel button
                                 OutlinedButton(
                                     onClick = {
                                         scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                            /*
+                                              Tapping cancel button closes the bottom sheet, nothing is added.
+                                              BottomSheet is dismissed.
+                                             */
                                             if (!sheetState.isVisible) {
                                                 showBottomSheet = false
                                             }
@@ -207,14 +241,16 @@ private fun ColumnView(){
 }
 
 
+
 @Composable
 private fun ColumnTodoListView(){
     LazyColumn(modifier = Modifier
         .padding(12.dp, 12.dp)
         .background(color = Color.Green)
         .verticalScroll(rememberScrollState()) //added scroll in case it is not working
-        .fillMaxSize()) {
-        item {  }
+        .fillMaxSize()
+    ){
+        item{}
     }
 }
 
@@ -233,7 +269,8 @@ private fun TodoList(){
 
 @Composable
 private fun TodoCheck(){
-    var isChecked by remember { mutableStateOf(true) }
+    var isChecked by remember { mutableStateOf(false) } //unchecked box by default
+
     Text(
         text = "Hello World.",
         color = Color.White,
