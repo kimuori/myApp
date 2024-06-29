@@ -206,6 +206,7 @@ class MainActivity : AppCompatActivity() {
                                         .padding(12.dp, 12.dp)
                                 ) {
                                     Text(text= stringResource(id = R.string.bottomsheet_button_save))
+
                                 }
 
                                 /*
@@ -215,8 +216,23 @@ class MainActivity : AppCompatActivity() {
                                  */
 
                                 if (showAlertDialog){
-                                    BlankAlertDialog( onCancel = { showAlertDialog = false })
-
+                                    AlertDialog(
+                                        onDismissRequest = {  },
+                                        confirmButton = {
+                                            TextButton(onClick = {
+                                                showAlertDialog = false
+                                                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                                    if (!sheetState.isVisible) {
+                                                        showBottomSheet = false
+                                                    }
+                                                }
+                                            } ) {
+                                                Text(text = stringResource(id = R.string.alertdialog_dismisstext))
+                                            }
+                                        },
+                                        title = { Text(text = stringResource(id = R.string.alertdialog_title))},
+                                        text = { Text(text = stringResource(id = R.string.alertdialog_text))}
+                                    )
                                 }
 
                                 //To-do List Cancel button
@@ -310,11 +326,14 @@ fun BlankAlertDialog(onCancel: () -> Unit ){
     AlertDialog(
         onDismissRequest = {  },
         confirmButton = {
-            TextButton(onClick = onCancel) {  Text(text = "Dismiss") }
+            TextButton(onClick = onCancel ) {
+                Text(text = stringResource(id = R.string.alertdialog_dismisstext))
+            }
         },
-        title = { Text(text = "Error") },
-        text = { Text(text = "Todo list cannot be left blank.")}
+        title = { Text(text = stringResource(id = R.string.alertdialog_title))},
+        text = { Text(text = stringResource(id = R.string.alertdialog_text))}
    )
+
 
 }
 

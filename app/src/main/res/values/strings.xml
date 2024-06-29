@@ -4,4 +4,7 @@
     <string name="outlinedtextfield_label">New Todo</string>
     <string name="bottomsheet_button_save">Save</string>
     <string name="bottomsheet_outlinedbutton_cancel">Cancel</string>
+    <string name="alertdialog_title">Error</string>
+    <string name ="alertdialog_text">Todo list cannot be left blank.</string>
+    <string name = "alertdialog_dismisstext">Dismiss</string>
 </resources>
