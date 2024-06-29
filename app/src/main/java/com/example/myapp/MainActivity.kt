@@ -45,7 +45,7 @@
     Reference:
     https://medium.com/geekculture/add-remove-in-lazycolumn-list-aka-recyclerview-jetpack-compose-7c4a2464fc9f
     https://stackoverflow.com/questions/68482228/how-to-clear-textfield-value-in-jetpack-compose
-
+    https://stackoverflow.com/questions/71534415/composable-invocations-can-only-happen-from-the-context-of-a-composable-functio
 
  */
 package com.example.myapp
@@ -53,6 +53,7 @@ package com.example.myapp
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -67,6 +68,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -76,7 +78,9 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -109,9 +113,9 @@ class MainActivity : AppCompatActivity() {
                     val sheetState = rememberModalBottomSheetState()
                     val scope = rememberCoroutineScope()
                     var showBottomSheet by remember { mutableStateOf(false)}
-                    var textValueField by remember { mutableStateOf(TextFieldValue(""))
+                    var textValueField by remember { mutableStateOf(TextFieldValue("")) }
+                    var showAlertDialog by remember {  mutableStateOf(false) }
 
-                    }
                     Scaffold(
                         topBar = {
                             TopAppBar(
@@ -146,14 +150,13 @@ class MainActivity : AppCompatActivity() {
                                 //To-do List text value field with trailing "x" icon
                                 OutlinedTextField(
                                     value = textValueField,
-                                    onValueChange = {textValueField = it},
+                                    onValueChange = {
+                                        textValueField = it
+                                    },
                                     label = {Text(text= stringResource(id = R.string.outlinedtextfield_label))},
 
                                     /* TODO:
                                        The "x" button will clear the text field.
-                                       **If there is NO TEXT when the button is tapped,
-                                         UI must show error. (Can it be a pop up dialogue?)
-
                                      */
                                     //"x" icon clear string functionality
                                     trailingIcon = {
@@ -172,20 +175,29 @@ class MainActivity : AppCompatActivity() {
                                 Spacer(modifier = Modifier.size(12.dp))
 
                                 //To-do List Save button
-                                Button(
-                                    onClick = {
-                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                            /* TODO:
-                                               Tapping on the save button must add the to-do
-                                               and update the list with the new to-do in an
-                                               UNCOMPLETED state.
+                                /* TODO:
+                                   Tapping on the save button must add the to-do
+                                   and update the list with the new to-do in an
+                                   UNCOMPLETED state.
+                                   **It must close the bottom sheet
+                                   **If there is NO TEXT when the save button is tapped,
+                                   UI must show error. (Can it be a pop up dialogue?)
+                                */
 
-                                               **It must close the bottom sheet
-                                               **If there is NO TEXT when the button is tapped,
-                                                 UI must show error. (Can it be a pop up dialogue?)
-                                             */
-                                            if (!sheetState.isVisible) {
-                                                showBottomSheet = false //temp
+                                Button(
+                                    /*
+                                       Checks on the condition if the OutlinedTextField is blank or isEmpty().
+                                       Otherwise, it will add a new to-do list.
+                                     */
+                                    onClick = {
+                                        if (textValueField.text == "" || textValueField.text.isEmpty() ) {
+                                            showAlertDialog = true //show error
+                                        } else {
+                                            //temp
+                                            scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                                if (!sheetState.isVisible) {
+                                                    showBottomSheet = false
+                                                }
                                             }
                                         }
                                     },
@@ -194,6 +206,17 @@ class MainActivity : AppCompatActivity() {
                                         .padding(12.dp, 12.dp)
                                 ) {
                                     Text(text= stringResource(id = R.string.bottomsheet_button_save))
+                                }
+
+                                /*
+                                   If the OutlinedTextField is left blank AND save button is selected,
+                                   this condition is flagged and will raise an Alert Dialog to notify
+                                   the user for missing input.
+                                 */
+
+                                if (showAlertDialog){
+                                    BlankAlertDialog( onCancel = { showAlertDialog = false })
+
                                 }
 
                                 //To-do List Cancel button
@@ -280,6 +303,19 @@ private fun TodoCheck(){
         checked = isChecked,
         onCheckedChange = {isChecked = it}
     )
+}
+
+@Composable
+fun BlankAlertDialog(onCancel: () -> Unit ){
+    AlertDialog(
+        onDismissRequest = {  },
+        confirmButton = {
+            TextButton(onClick = onCancel) {  Text(text = "Dismiss") }
+        },
+        title = { Text(text = "Error") },
+        text = { Text(text = "Todo list cannot be left blank.")}
+   )
+
 }
 
 @Preview(showBackground = true)
