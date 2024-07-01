@@ -85,6 +85,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -113,8 +114,8 @@ class MainActivity : AppCompatActivity() {
                     val sheetState = rememberModalBottomSheetState()
                     val scope = rememberCoroutineScope()
                     var showBottomSheet by remember { mutableStateOf(false)}
-                    var textValueField by remember { mutableStateOf(TextFieldValue("")) }
-                    var showAlertDialog by remember {  mutableStateOf(false) }
+                    var textValueField by remember { mutableStateOf(TextFieldValue("")) } //to-do list text
+                    var showAlertDialog by remember {  mutableStateOf(false) } //for UI error
 
                     Scaffold(
                         topBar = {
@@ -155,9 +156,6 @@ class MainActivity : AppCompatActivity() {
                                     },
                                     label = {Text(text= stringResource(id = R.string.outlinedtextfield_label))},
 
-                                    /* TODO:
-                                       The "x" button will clear the text field.
-                                     */
                                     //"x" icon clear string functionality
                                     trailingIcon = {
                                         Icon(
@@ -174,16 +172,7 @@ class MainActivity : AppCompatActivity() {
                                 )
                                 Spacer(modifier = Modifier.size(12.dp))
 
-                                //To-do List Save button
-                                /* TODO:
-                                   Tapping on the save button must add the to-do
-                                   and update the list with the new to-do in an
-                                   UNCOMPLETED state.
-                                   **It must close the bottom sheet
-                                   **If there is NO TEXT when the save button is tapped,
-                                   UI must show error. (Can it be a pop up dialogue?)
-                                */
-
+                                //To-do List Save button and BottomSheet dismissal for UI Error
                                 Button(
                                     /*
                                        Checks on the condition if the OutlinedTextField is blank or isEmpty().
@@ -193,7 +182,12 @@ class MainActivity : AppCompatActivity() {
                                         if (textValueField.text == "" || textValueField.text.isEmpty() ) {
                                             showAlertDialog = true //show error
                                         } else {
-                                            //temp
+                                            /* TODO:
+                                               tapping on the save button must add the to-do and
+                                               update the list with the new to-do in an UNCOMPLETED state.
+                                                   -- it must close the bottom sheet after
+                                             */
+                                            //add the to-do item
                                             scope.launch { sheetState.hide() }.invokeOnCompletion {
                                                 if (!sheetState.isVisible) {
                                                     showBottomSheet = false
@@ -214,8 +208,8 @@ class MainActivity : AppCompatActivity() {
                                    this condition is flagged and will raise an Alert Dialog to notify
                                    the user for missing input.
                                  */
-
                                 if (showAlertDialog){
+                                    //hide the BottomSheet after clicking the confirmButtom
                                     AlertDialog(
                                         onDismissRequest = {  },
                                         confirmButton = {
@@ -279,8 +273,6 @@ private fun ColumnView(){
 
 }
 
-
-
 @Composable
 private fun ColumnTodoListView(){
     LazyColumn(modifier = Modifier
@@ -305,6 +297,8 @@ private fun TodoList(){
         TodoCheck()
     }
 }
+
+
 
 @Composable
 private fun TodoCheck(){
@@ -333,8 +327,6 @@ fun BlankAlertDialog(onCancel: () -> Unit ){
         title = { Text(text = stringResource(id = R.string.alertdialog_title))},
         text = { Text(text = stringResource(id = R.string.alertdialog_text))}
    )
-
-
 }
 
 @Preview(showBackground = true)
