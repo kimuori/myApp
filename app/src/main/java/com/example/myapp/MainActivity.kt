@@ -53,12 +53,10 @@ package com.example.myapp
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -66,10 +64,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -78,14 +76,11 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -97,7 +92,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
@@ -116,12 +110,15 @@ class MainActivity : AppCompatActivity() {
                     var showBottomSheet by remember { mutableStateOf(false)}
                     var textValueField by remember { mutableStateOf(TextFieldValue("")) } //to-do list text
                     var showAlertDialog by remember {  mutableStateOf(false) } //for UI error
+                    val theList = remember {mutableListOf<TodoCheckList>() }
 
                     Scaffold(
                         topBar = {
-                            TopAppBar(
+                            CenterAlignedTopAppBar(
                                 title = {
-                                    Text(text= stringResource(id = R.string.topbar_header))}
+                                    Text(
+                                        text = stringResource(id = R.string.topbar_header),
+                                    )}
                             )},
 
                         floatingActionButton = {
@@ -138,8 +135,7 @@ class MainActivity : AppCompatActivity() {
 
                     ){
                         innerPadding ->
-                        ColumnView()
-                        //ColumnTodoListView()
+                        ColumnTodoListView(theList)
 
                         //if FOA is clicked, show the BottomSheet
                         if (showBottomSheet){
@@ -154,7 +150,10 @@ class MainActivity : AppCompatActivity() {
                                     onValueChange = {
                                         textValueField = it
                                     },
-                                    label = {Text(text= stringResource(id = R.string.outlinedtextfield_label))},
+                                    label = {
+                                        Text(
+                                            text= stringResource(id = R.string.outlinedtextfield_label),
+                                        )},
 
                                     //"x" icon clear string functionality
                                     trailingIcon = {
@@ -187,6 +186,7 @@ class MainActivity : AppCompatActivity() {
                                                update the list with the new to-do in an UNCOMPLETED state.
                                                    -- it must close the bottom sheet after
                                              */
+                                            theList.add(TodoCheckList(textValueField.text, false))
                                             //add the to-do item
                                             scope.launch { sheetState.hide() }.invokeOnCompletion {
                                                 if (!sheetState.isVisible) {
@@ -199,7 +199,9 @@ class MainActivity : AppCompatActivity() {
                                         .fillMaxWidth()
                                         .padding(12.dp, 12.dp)
                                 ) {
-                                    Text(text= stringResource(id = R.string.bottomsheet_button_save))
+                                    Text(
+                                        text= stringResource(id = R.string.bottomsheet_button_save),
+                                    )
 
                                 }
 
@@ -221,7 +223,9 @@ class MainActivity : AppCompatActivity() {
                                                     }
                                                 }
                                             } ) {
-                                                Text(text = stringResource(id = R.string.alertdialog_dismisstext))
+                                                Text(
+                                                    text = stringResource(id = R.string.alertdialog_dismisstext),
+                                                    )
                                             }
                                         },
                                         title = { Text(text = stringResource(id = R.string.alertdialog_title))},
@@ -246,7 +250,9 @@ class MainActivity : AppCompatActivity() {
                                         .fillMaxWidth()
                                         .padding(12.dp, 12.dp)
                                 ) {
-                                    Text(text= stringResource(id = R.string.bottomsheet_outlinedbutton_cancel))
+                                    Text(
+                                        text= stringResource(id = R.string.bottomsheet_outlinedbutton_cancel),
+                                    )
                                 }
                             }
                         }
@@ -258,79 +264,106 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+data class TodoCheckList(val todoCheckText: String?, val isChecked: Boolean){}
+
 @Composable
-private fun ColumnView(){
-    Column(
-        modifier = Modifier
-            .padding(12.dp, 12.dp)
-            .background(color = Color.Green)
-            .verticalScroll(rememberScrollState()) //added scroll in case it is not working
-            .fillMaxSize()) {
-        for( i in 0..10 ) {
-            TodoList()
+private fun ColumnTodoListView(theList: MutableList<TodoCheckList>) {
+    LazyColumn(modifier = Modifier
+        .padding(start = 12.dp, top = 96.dp, end = 12.dp, bottom = 0.dp)
+        .background(color = Color.Green)
+        //.verticalScroll(rememberScrollState()) //causes error
+        .fillMaxSize(),
+
+    ){
+        items(theList){
+            items ->
+                Row (
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .background(color = Color.Blue)
+                        .fillMaxWidth()
+                ){
+                    var isChecked by remember { mutableStateOf(items.isChecked) } //unchecked box by default
+                    Text(
+                        text = items.todoCheckText?: "",
+                        color = Color.White,
+                        modifier = Modifier.padding(12.dp, 12.dp)
+                    )
+                    Checkbox(
+                        checked = isChecked,
+                        onCheckedChange = { isChecked = it}
+                    )
+                }
         }
     }
-
 }
 
-@Composable
-private fun ColumnTodoListView(){
-    LazyColumn(modifier = Modifier
-        .padding(12.dp, 12.dp)
-        .background(color = Color.Green)
-        .verticalScroll(rememberScrollState()) //added scroll in case it is not working
-        .fillMaxSize()
-    ){
-        item{}
-    }
-}
+//@Composable
+//private fun ColumnView(str: String?){
+//    Column(
+//        modifier = Modifier
+//            .padding(12.dp, 12.dp)
+//            .background(color = Color.Green)
+//            .verticalScroll(rememberScrollState()) //added scroll in case it is not working
+//            .fillMaxSize()) {
+//        /*
+//        for( i in 0..10 ) {
+//            //TodoList(str)
+//        }
+//         */
+//    }
+//
+//}
 
-@Composable
-private fun TodoList(){
-    Row (
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier
-            .background(color = Color.Blue)
-            .fillMaxWidth()
-    ){
-        TodoCheck()
-    }
-}
+//@Composable
+//private fun TodoList(str: String?){
+//    Row (
+//        verticalAlignment = Alignment.CenterVertically,
+//        horizontalArrangement = Arrangement.SpaceBetween,
+//        modifier = Modifier
+//            .background(color = Color.Blue)
+//            .fillMaxWidth()
+//    ){
+//        var isChecked by remember { mutableStateOf(false) } //unchecked box by default
+//
+//        Text(
+//            text = str?: "",
+//            color = Color.White,
+//            modifier = Modifier.padding(12.dp, 12.dp)
+//        )
+//        Checkbox(
+//            checked = isChecked,
+//            onCheckedChange = {isChecked = it}
+//        )
+//    }
+//}
 
+//@Composable
+//private fun TodoCheck(str: String?){
+//    var isChecked by remember { mutableStateOf(false) } //unchecked box by default
+//
+//    Text(
+//        text = str?: "",
+//        color = Color.White,
+//        modifier = Modifier.padding(12.dp, 12.dp)
+//    )
+//    Checkbox(
+//        checked = isChecked,
+//        onCheckedChange = {isChecked = it}
+//    )
+//}
 
-
-@Composable
-private fun TodoCheck(){
-    var isChecked by remember { mutableStateOf(false) } //unchecked box by default
-
-    Text(
-        text = "Hello World.",
-        color = Color.White,
-        modifier = Modifier.padding(12.dp, 12.dp)
-    )
-    Checkbox(
-        checked = isChecked,
-        onCheckedChange = {isChecked = it}
-    )
-}
-
-@Composable
-fun BlankAlertDialog(onCancel: () -> Unit ){
-    AlertDialog(
-        onDismissRequest = {  },
-        confirmButton = {
-            TextButton(onClick = onCancel ) {
-                Text(text = stringResource(id = R.string.alertdialog_dismisstext))
-            }
-        },
-        title = { Text(text = stringResource(id = R.string.alertdialog_title))},
-        text = { Text(text = stringResource(id = R.string.alertdialog_text))}
-   )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview (){
-    ColumnView()
-}
+//@Composable
+//fun BlankAlertDialog(onCancel: () -> Unit ){
+//    AlertDialog(
+//        onDismissRequest = {  },
+//        confirmButton = {
+//            TextButton(onClick = onCancel ) {
+//                Text(text = stringResource(id = R.string.alertdialog_dismisstext))
+//            }
+//        },
+//        title = { Text(text = stringResource(id = R.string.alertdialog_title))},
+//        text = { Text(text = stringResource(id = R.string.alertdialog_text))}
+//   )
+//}
