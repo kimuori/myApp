@@ -52,26 +52,25 @@ package com.example.myapp
 
 /*
     Assignment 2
-    UI
 
+    [UI]
     Create a Login UI and Create Account UI.
-    The title is "To-do"
+    * The main title is "To-do"
 
-        Login:
+    **  Login:
             * email
             * password
             **Log in button
             **"Dont have an account?" text link
 
-        Create Account
+    **  Create Account
             * name
             * email
             *password
             **Create Account button
             **"Log In" text link
 
-
-    HTTP REQUESTS & APP BEHAVIOR
+    [HTTP REQUESTS & APP BEHAVIOR]
     The main screen of the application should GET the list of the logged in user’s todos from the server.
     When tapping the check box to “complete” a to-do item, the app should PUT that to the server.
     When creating a new to-do from the bottom sheet, the app should POST that new to-do to the server.
@@ -79,25 +78,23 @@ package com.example.myapp
     If you quit the application and log in again, the todos for the user should be fetched and displayed.
     If you quit the application and log in with a different user, the different user’s todos should be fetched and displayed.
 
-    ARCHITECTURE
+    [ARCHITECTURE]
     The LogInViewModel and the CreateAccountViewModel will need to get the token and the user id
     from either the log in response or the create account response and store them in a
     place where OTHER parts of the application can make use of it.
         **Use SharedPreferences which is a built-in part of the Android SDK.
 
-        THe API is the data layer, no need database
+        The API is the Data layer, no need database.
         **Store current list of To-do in the To-doListModel
         **list should be replaced when GETting the list of the user’s todos.
 
-    ERROR HANDLING
+    [ERROR HANDLING]
     For every error, display an error dialogue.
 
-    REQUIREMENTS
+    [REQUIREMENTS]
         * use MVVM
         * Use Kotlin Coroutine in your Retrofit functions
             ** ViewModel super class provides viewModelScope for calling/creating coroutines
-
-
  */
 
 import android.annotation.SuppressLint
@@ -107,6 +104,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -141,8 +139,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -161,6 +162,8 @@ class MainActivity : AppCompatActivity() {
                     var textValueField by remember { mutableStateOf(TextFieldValue("")) } //to-do list text
                     var showAlertDialog by remember {  mutableStateOf(false) } //for UI error
                     val theList = remember {mutableListOf<TodoCheckList>() }
+
+                    val navController = rememberNavController()
 
                     Scaffold(
                         topBar = {
@@ -231,10 +234,9 @@ class MainActivity : AppCompatActivity() {
                                         if (textValueField.text == "" || textValueField.text.isEmpty() ) {
                                             showAlertDialog = true //show error
                                         } else {
-                                            /* TODO:
-                                               tapping on the save button must add the to-do and
-                                               update the list with the new to-do in an UNCOMPLETED state.
-                                                   -- it must close the bottom sheet after
+                                            /*
+                                                Save button adds the to-do and updates the list with
+                                                the new to-do. Finally, the bottom sheet closes.
                                              */
                                             theList.add(TodoCheckList(textValueField.text, false))
                                             //add the to-do item
@@ -261,7 +263,7 @@ class MainActivity : AppCompatActivity() {
                                    the user for missing input.
                                  */
                                 if (showAlertDialog){
-                                    //hide the BottomSheet after clicking the confirmButtom
+                                    //hide the BottomSheet after clicking the confirmButton
                                     AlertDialog(
                                         onDismissRequest = {  },
                                         confirmButton = {
@@ -314,15 +316,19 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-data class TodoCheckList(val todoCheckText: String?, val isChecked: Boolean){}
+//attributes that a to-do list has: a to-do string and a (un)checked box
+data class TodoCheckList(val todoCheckText: String?, val isChecked: Boolean)
 
 @Composable
-private fun ColumnTodoListView(theList: MutableList<TodoCheckList>) {
+private fun ColumnTodoListView(
+    theList: MutableList<TodoCheckList>
+) {
     LazyColumn(modifier = Modifier
         .padding(start = 12.dp, top = 96.dp, end = 12.dp, bottom = 0.dp)
         .background(color = Color.Green)
+        .fillMaxSize()
         //.verticalScroll(rememberScrollState()) //causes error
-        .fillMaxSize(),
+
 
     ){
         items(theList){
@@ -349,72 +355,134 @@ private fun ColumnTodoListView(theList: MutableList<TodoCheckList>) {
     }
 }
 
+@Composable
+fun LogInScreen (
+    onButtonClicked: () -> Unit
+){
+    var emailValueField by remember { mutableStateOf(TextFieldValue(""))}
+    var passwordValueField by remember { mutableStateOf(TextFieldValue(""))}
 
+    Column (
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Cyan),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,) {
+        Text(
+            text = "Todo",
+            fontSize = 48.sp,
+        )
 
-//@Composable
-//private fun ColumnView(str: String?){
-//    Column(
-//        modifier = Modifier
-//            .padding(12.dp, 12.dp)
-//            .background(color = Color.Green)
-//            .verticalScroll(rememberScrollState()) //added scroll in case it is not working
-//            .fillMaxSize()) {
-//        /*
-//        for( i in 0..10 ) {
-//            //TodoList(str)
-//        }
-//         */
-//    }
-//}
+        Spacer(modifier = Modifier.size(24.dp))
 
-//@Composable
-//private fun TodoList(str: String?){
-//    Row (
-//        verticalAlignment = Alignment.CenterVertically,
-//        horizontalArrangement = Arrangement.SpaceBetween,
-//        modifier = Modifier
-//            .background(color = Color.Blue)
-//            .fillMaxWidth()
-//    ){
-//        var isChecked by remember { mutableStateOf(false) } //unchecked box by default
-//
-//        Text(
-//            text = str?: "",
-//            color = Color.White,
-//            modifier = Modifier.padding(12.dp, 12.dp)
-//        )
-//        Checkbox(
-//            checked = isChecked,
-//            onCheckedChange = {isChecked = it}
-//        )
-//    }
-//}
+        OutlinedTextField(
+            value = emailValueField,
+            onValueChange = {
+                emailValueField = it
+            },
+            label = {
+                Text(
+                    text = "Email Address",
+                )},
 
-//@Composable
-//private fun TodoCheck(str: String?){
-//    var isChecked by remember { mutableStateOf(false) } //unchecked box by default
-//
-//    Text(
-//        text = str?: "",
-//        color = Color.White,
-//        modifier = Modifier.padding(12.dp, 12.dp)
-//    )
-//    Checkbox(
-//        checked = isChecked,
-//        onCheckedChange = {isChecked = it}
-//    )
-//}
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp, 12.dp)
+        )
 
-//@Composable
-//fun BlankAlertDialog(onCancel: () -> Unit ){
-//    AlertDialog(
-//        onDismissRequest = {  },
-//        confirmButton = {
-//            TextButton(onClick = onCancel ) {
-//                Text(text = stringResource(id = R.string.alertdialog_dismisstext))
-//            }
-//        },
-//        title = { Text(text = stringResource(id = R.string.alertdialog_title))},
-//        text = { Text(text = stringResource(id = R.string.alertdialog_text))}
-//   )
-//}
+        OutlinedTextField(
+            value = passwordValueField,
+            onValueChange = {
+                passwordValueField = it
+            },
+            label = {
+                Text(
+                    text = "Password",
+                )},
+
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp, 12.dp)
+        )
+    }
+}
+
+@Composable
+fun CreateAccountScreen (
+    onButtonClicked: () -> Unit
+){
+    var newUsername by remember { mutableStateOf(TextFieldValue(""))}
+    var newEmailValueField by remember { mutableStateOf(TextFieldValue(""))}
+    var newPasswordValueField by remember { mutableStateOf(TextFieldValue(""))}
+
+    Column (
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Cyan),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,) {
+        Text(
+            text = "Todo",
+            fontSize = 48.sp,
+        )
+
+        Spacer(modifier = Modifier.size(24.dp))
+
+        OutlinedTextField(
+            value = newUsername,
+            onValueChange = {
+                newUsername = it
+            },
+            label = {
+                Text(
+                    text = "Name",
+                )},
+
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp, 12.dp)
+        )
+
+        OutlinedTextField(
+            value = newEmailValueField,
+            onValueChange = {
+                newEmailValueField = it
+            },
+            label = {
+                Text(
+                    text = "Email Address",
+                )},
+
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp, 12.dp)
+        )
+
+        OutlinedTextField(
+            value = newPasswordValueField,
+            onValueChange = {
+                newPasswordValueField = it
+            },
+            label = {
+                Text(
+                    text = "Password",
+                )},
+
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp, 12.dp)
+        )
+    }
+}
+
+@Composable
+fun TodoListScreen (
+    onButtonClicked: () -> Unit
+){
+    /* TODO */
+}
