@@ -327,8 +327,6 @@ private fun ColumnTodoListView(
         .padding(start = 12.dp, top = 96.dp, end = 12.dp, bottom = 0.dp)
         .background(color = Color.Green)
         .fillMaxSize()
-        //.verticalScroll(rememberScrollState()) //causes error
-
 
     ){
         items(theList){
@@ -369,7 +367,7 @@ fun LogInScreen (
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,) {
         Text(
-            text = "Todo",
+            text = stringResource(id = R.string.logInScreen_title),
             fontSize = 48.sp,
         )
 
@@ -382,7 +380,7 @@ fun LogInScreen (
             },
             label = {
                 Text(
-                    text = "Email Address",
+                    text = stringResource(id = R.string.logInScreen_outlinedtextfield_email),
                 )},
 
             singleLine = true,
@@ -398,7 +396,7 @@ fun LogInScreen (
             },
             label = {
                 Text(
-                    text = "Password",
+                    text = stringResource(id = R.string.logInScreen_outlinedtextfield_password),
                 )},
 
             singleLine = true,
@@ -406,6 +404,27 @@ fun LogInScreen (
                 .fillMaxWidth()
                 .padding(12.dp, 12.dp)
         )
+
+        //navigating buttons
+        Button(
+            onClick = { },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp, 12.dp)
+        ) {
+            Text(
+                text= stringResource(id = R.string.logInScreen_button_login),
+            )
+
+        }
+
+        Spacer(modifier = Modifier.size(12.dp))
+
+        TextButton(
+            onClick = { }
+        ) {
+            Text(stringResource(id = R.string.logInScreen_textbutton_create))
+        }
     }
 }
 
@@ -420,11 +439,11 @@ fun CreateAccountScreen (
     Column (
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Cyan),
+            .background(Color.Yellow),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,) {
         Text(
-            text = "Todo",
+            text = stringResource(id = R.string.screenCreateAccount_title),
             fontSize = 48.sp,
         )
 
@@ -437,7 +456,7 @@ fun CreateAccountScreen (
             },
             label = {
                 Text(
-                    text = "Name",
+                    text = stringResource(id = R.string.screenCreateAccount_outlinedtextfield_name),
                 )},
 
             singleLine = true,
@@ -453,7 +472,7 @@ fun CreateAccountScreen (
             },
             label = {
                 Text(
-                    text = "Email Address",
+                    text = stringResource(id = R.string.screenCreateAccount_outlinedtextfield_email),
                 )},
 
             singleLine = true,
@@ -469,7 +488,7 @@ fun CreateAccountScreen (
             },
             label = {
                 Text(
-                    text = "Password",
+                    text = stringResource(id = R.string.screenCreateAccount_outlinedtextfield_password),
                 )},
 
             singleLine = true,
@@ -477,6 +496,29 @@ fun CreateAccountScreen (
                 .fillMaxWidth()
                 .padding(12.dp, 12.dp)
         )
+
+        //navigating buttons
+        Button(
+            onClick = { },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp, 12.dp)
+        ) {
+            Text(
+                text= stringResource(id = R.string.screenCreateAccount_button_create),
+            )
+
+        }
+
+        Spacer(modifier = Modifier.size(12.dp))
+
+        TextButton(
+            onClick = { }
+        ) {
+            Text(
+                text = stringResource(id = R.string.screenCreateAccount_textbutton_login),
+            )
+        }
     }
 }
 
