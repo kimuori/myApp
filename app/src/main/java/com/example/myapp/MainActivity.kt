@@ -50,6 +50,56 @@
  */
 package com.example.myapp
 
+/*
+    Assignment 2
+    UI
+
+    Create a Login UI and Create Account UI.
+    The title is "To-do"
+
+        Login:
+            * email
+            * password
+            **Log in button
+            **"Dont have an account?" text link
+
+        Create Account
+            * name
+            * email
+            *password
+            **Create Account button
+            **"Log In" text link
+
+
+    HTTP REQUESTS & APP BEHAVIOR
+    The main screen of the application should GET the list of the logged in user’s todos from the server.
+    When tapping the check box to “complete” a to-do item, the app should PUT that to the server.
+    When creating a new to-do from the bottom sheet, the app should POST that new to-do to the server.
+    After creating a new to-do, make sure to GET the list of the logged in user’s todos again so that the new todo can be displayed.
+    If you quit the application and log in again, the todos for the user should be fetched and displayed.
+    If you quit the application and log in with a different user, the different user’s todos should be fetched and displayed.
+
+    ARCHITECTURE
+    The LogInViewModel and the CreateAccountViewModel will need to get the token and the user id
+    from either the log in response or the create account response and store them in a
+    place where OTHER parts of the application can make use of it.
+        **Use SharedPreferences which is a built-in part of the Android SDK.
+
+        THe API is the data layer, no need database
+        **Store current list of To-do in the To-doListModel
+        **list should be replaced when GETting the list of the user’s todos.
+
+    ERROR HANDLING
+    For every error, display an error dialogue.
+
+    REQUIREMENTS
+        * use MVVM
+        * Use Kotlin Coroutine in your Retrofit functions
+            ** ViewModel super class provides viewModelScope for calling/creating coroutines
+
+
+ */
+
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
@@ -299,6 +349,8 @@ private fun ColumnTodoListView(theList: MutableList<TodoCheckList>) {
     }
 }
 
+
+
 //@Composable
 //private fun ColumnView(str: String?){
 //    Column(
@@ -313,7 +365,6 @@ private fun ColumnTodoListView(theList: MutableList<TodoCheckList>) {
 //        }
 //         */
 //    }
-//
 //}
 
 //@Composable
