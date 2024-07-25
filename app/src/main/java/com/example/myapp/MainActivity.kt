@@ -139,10 +139,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 
@@ -156,159 +158,175 @@ class MainActivity : AppCompatActivity() {
         setContentView(
             ComposeView(this).apply{
                 setContent{
-                    val sheetState = rememberModalBottomSheetState()
-                    val scope = rememberCoroutineScope()
-                    var showBottomSheet by remember { mutableStateOf(false)}
-                    var textValueField by remember { mutableStateOf(TextFieldValue("")) } //to-do list text
-                    var showAlertDialog by remember {  mutableStateOf(false) } //for UI error
-                    val theList = remember {mutableListOf<TodoCheckList>() }
-
                     val navController = rememberNavController()
 
-                    Scaffold(
-                        topBar = {
-                            CenterAlignedTopAppBar(
-                                title = {
-                                    Text(
-                                        text = stringResource(id = R.string.topbar_header),
-                                    )}
-                            )},
-
-                        floatingActionButton = {
-                            FloatingActionButton(
-                                onClick = {showBottomSheet = true}
-                            ){
-                                Icon(
-                                    modifier = Modifier.padding(12.dp, 12.dp),
-                                    painter = painterResource(id = R.drawable.baseline_add_24),
-                                    contentDescription = "add"
-                                )
-                            }
+                    NavHost(navController = navController, startDestination = "one" ){
+                        composable( route = "one"){
+                            CreateAccountScreen(navController)
                         }
 
-                    ){
-                        innerPadding ->
-                        ColumnTodoListView(theList)
+                        composable( route = "two"){
+                            LogInScreen(navController)
+                        }
 
-                        //if FOA is clicked, show the BottomSheet
-                        if (showBottomSheet){
-                            ModalBottomSheet(
-                                onDismissRequest = { showBottomSheet = false },
-                                sheetState = sheetState
-                            ) {
+                        composable (route = "three"){
+                            val sheetState = rememberModalBottomSheetState()
+                            val scope = rememberCoroutineScope()
+                            var showBottomSheet by remember { mutableStateOf(false)}
+                            var textValueField by remember { mutableStateOf(TextFieldValue("")) } //to-do list text
+                            var showAlertDialog by remember {  mutableStateOf(false) } //for UI error
+                            val theList = remember {mutableListOf<TodoCheckList>() }
 
-                                //To-do List text value field with trailing "x" icon
-                                OutlinedTextField(
-                                    value = textValueField,
-                                    onValueChange = {
-                                        textValueField = it
-                                    },
-                                    label = {
-                                        Text(
-                                            text= stringResource(id = R.string.outlinedtextfield_label),
-                                        )},
+                            Scaffold(
+                                topBar = {
+                                    CenterAlignedTopAppBar(
+                                        title = {
+                                            Text(
+                                                text = stringResource(id = R.string.topbar_header),
+                                            )}
+                                    )},
 
-                                    //"x" icon clear string functionality
-                                    trailingIcon = {
+                                floatingActionButton = {
+                                    FloatingActionButton(
+                                        onClick = {showBottomSheet = true}
+                                    ){
                                         Icon(
-                                            painter = painterResource(id = R.drawable.outline_cancel_24dp),
-                                            contentDescription = "clear text",
-                                            //textValueField is now a blank string upon clicking
-                                            modifier = Modifier.clickable { textValueField = TextFieldValue("") }
+                                            modifier = Modifier.padding(12.dp, 12.dp),
+                                            painter = painterResource(id = R.drawable.baseline_add_24),
+                                            contentDescription = "add"
                                         )
-                                    },
-                                    singleLine = true,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(12.dp, 12.dp)
-                                )
-                                Spacer(modifier = Modifier.size(12.dp))
-
-                                //To-do List Save button and BottomSheet dismissal for UI Error
-                                Button(
-                                    /*
-                                       Checks on the condition if the OutlinedTextField is blank or isEmpty().
-                                       Otherwise, it will add a new to-do list.
-                                     */
-                                    onClick = {
-                                        if (textValueField.text == "" || textValueField.text.isEmpty() ) {
-                                            showAlertDialog = true //show error
-                                        } else {
-                                            /*
-                                                Save button adds the to-do and updates the list with
-                                                the new to-do. Finally, the bottom sheet closes.
-                                             */
-                                            theList.add(TodoCheckList(textValueField.text, false))
-                                            //add the to-do item
-                                            scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                                if (!sheetState.isVisible) {
-                                                    showBottomSheet = false
-                                                }
-                                            }
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(12.dp, 12.dp)
-                                ) {
-                                    Text(
-                                        text= stringResource(id = R.string.bottomsheet_button_save),
-                                    )
-
+                                    }
                                 }
 
-                                /*
-                                   If the OutlinedTextField is left blank AND save button is selected,
-                                   this condition is flagged and will raise an Alert Dialog to notify
-                                   the user for missing input.
-                                 */
-                                if (showAlertDialog){
-                                    //hide the BottomSheet after clicking the confirmButton
-                                    AlertDialog(
-                                        onDismissRequest = {  },
-                                        confirmButton = {
-                                            TextButton(onClick = {
-                                                showAlertDialog = false
+                            ){
+                                    innerPadding ->
+                                ColumnTodoListView(theList)
+
+                                //if FOA is clicked, show the BottomSheet
+                                if (showBottomSheet){
+                                    ModalBottomSheet(
+                                        onDismissRequest = { showBottomSheet = false },
+                                        sheetState = sheetState
+                                    ) {
+
+                                        //To-do List text value field with trailing "x" icon
+                                        OutlinedTextField(
+                                            value = textValueField,
+                                            onValueChange = {
+                                                textValueField = it
+                                            },
+                                            label = {
+                                                Text(
+                                                    text= stringResource(id = R.string.outlinedtextfield_label),
+                                                )},
+
+                                            //"x" icon clear string functionality
+                                            trailingIcon = {
+                                                Icon(
+                                                    painter = painterResource(id = R.drawable.outline_cancel_24dp),
+                                                    contentDescription = "clear text",
+                                                    //textValueField is now a blank string upon clicking
+                                                    modifier = Modifier.clickable { textValueField = TextFieldValue("") }
+                                                )
+                                            },
+                                            singleLine = true,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(12.dp, 12.dp)
+                                        )
+                                        Spacer(modifier = Modifier.size(12.dp))
+
+                                        //To-do List Save button and BottomSheet dismissal for UI Error
+                                        Button(
+                                            /*
+                                               Checks on the condition if the OutlinedTextField is blank or isEmpty().
+                                               Otherwise, it will add a new to-do list.
+                                             */
+                                            onClick = {
+                                                if (textValueField.text == "" || textValueField.text.isEmpty() ) {
+                                                    showAlertDialog = true //show error
+                                                } else {
+                                                    /*
+                                                        Save button adds the to-do and updates the list with
+                                                        the new to-do. Finally, the bottom sheet closes.
+                                                     */
+                                                    theList.add(TodoCheckList(textValueField.text, false))
+                                                    //add the to-do item
+                                                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                                        if (!sheetState.isVisible) {
+                                                            showBottomSheet = false
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(12.dp, 12.dp)
+                                        ) {
+                                            Text(
+                                                text= stringResource(id = R.string.bottomsheet_button_save),
+                                            )
+
+                                        }
+
+                                        /*
+                                           If the OutlinedTextField is left blank AND save button is selected,
+                                           this condition is flagged and will raise an Alert Dialog to notify
+                                           the user for missing input.
+                                         */
+                                        if (showAlertDialog){
+                                            //hide the BottomSheet after clicking the confirmButton
+                                            AlertDialog(
+                                                onDismissRequest = {  },
+                                                confirmButton = {
+                                                    TextButton(onClick = {
+                                                        showAlertDialog = false
+                                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                                            if (!sheetState.isVisible) {
+                                                                showBottomSheet = false
+                                                            }
+                                                        }
+                                                    } ) {
+                                                        Text(
+                                                            text = stringResource(id = R.string.alertdialog_dismisstext),
+                                                        )
+                                                    }
+                                                },
+                                                title = { Text(text = stringResource(id = R.string.alertdialog_title))},
+                                                text = { Text(text = stringResource(id = R.string.alertdialog_text))}
+                                            )
+                                        }
+
+                                        //To-do List Cancel button
+                                        OutlinedButton(
+                                            onClick = {
                                                 scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                                    /*
+                                                      Tapping cancel button closes the bottom sheet, nothing is added.
+                                                      BottomSheet is dismissed.
+                                                     */
                                                     if (!sheetState.isVisible) {
                                                         showBottomSheet = false
                                                     }
                                                 }
-                                            } ) {
-                                                Text(
-                                                    text = stringResource(id = R.string.alertdialog_dismisstext),
-                                                    )
-                                            }
-                                        },
-                                        title = { Text(text = stringResource(id = R.string.alertdialog_title))},
-                                        text = { Text(text = stringResource(id = R.string.alertdialog_text))}
-                                    )
-                                }
-
-                                //To-do List Cancel button
-                                OutlinedButton(
-                                    onClick = {
-                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                            /*
-                                              Tapping cancel button closes the bottom sheet, nothing is added.
-                                              BottomSheet is dismissed.
-                                             */
-                                            if (!sheetState.isVisible) {
-                                                showBottomSheet = false
-                                            }
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(12.dp, 12.dp)
+                                        ) {
+                                            Text(
+                                                text= stringResource(id = R.string.bottomsheet_outlinedbutton_cancel),
+                                            )
                                         }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(12.dp, 12.dp)
-                                ) {
-                                    Text(
-                                        text= stringResource(id = R.string.bottomsheet_outlinedbutton_cancel),
-                                    )
+                                    }
                                 }
                             }
                         }
+
                     }
+
+
+
                 }
             }
         )
@@ -324,7 +342,7 @@ private fun ColumnTodoListView(
     theList: MutableList<TodoCheckList>
 ) {
     LazyColumn(modifier = Modifier
-        .padding(start = 12.dp, top = 96.dp, end = 12.dp, bottom = 0.dp)
+        .padding(start = 12.dp, top = 113.dp, end = 12.dp, bottom = 0.dp)
         .background(color = Color.Green)
         .fillMaxSize()
 
@@ -355,7 +373,7 @@ private fun ColumnTodoListView(
 
 @Composable
 fun LogInScreen (
-    onButtonClicked: () -> Unit
+    navController : NavController
 ){
     var emailValueField by remember { mutableStateOf(TextFieldValue(""))}
     var passwordValueField by remember { mutableStateOf(TextFieldValue(""))}
@@ -367,7 +385,7 @@ fun LogInScreen (
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,) {
         Text(
-            text = stringResource(id = R.string.logInScreen_title),
+            text = stringResource(id = R.string.screenLogIn_title),
             fontSize = 48.sp,
         )
 
@@ -380,7 +398,7 @@ fun LogInScreen (
             },
             label = {
                 Text(
-                    text = stringResource(id = R.string.logInScreen_outlinedtextfield_email),
+                    text = stringResource(id = R.string.screenLogIn_outlinedtextfield_email),
                 )},
 
             singleLine = true,
@@ -396,7 +414,7 @@ fun LogInScreen (
             },
             label = {
                 Text(
-                    text = stringResource(id = R.string.logInScreen_outlinedtextfield_password),
+                    text = stringResource(id = R.string.screenLogIn_outlinedtextfield_password),
                 )},
 
             singleLine = true,
@@ -407,13 +425,13 @@ fun LogInScreen (
 
         //navigating buttons
         Button(
-            onClick = { },
+            onClick = { navController.navigate("three") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp, 12.dp)
         ) {
             Text(
-                text= stringResource(id = R.string.logInScreen_button_login),
+                text= stringResource(id = R.string.screenLogIn_button_login),
             )
 
         }
@@ -421,16 +439,16 @@ fun LogInScreen (
         Spacer(modifier = Modifier.size(12.dp))
 
         TextButton(
-            onClick = { }
+            onClick = { navController.navigate("one") }
         ) {
-            Text(stringResource(id = R.string.logInScreen_textbutton_create))
+            Text(stringResource(id = R.string.screenLogIn_textbutton_create))
         }
     }
 }
 
 @Composable
 fun CreateAccountScreen (
-    onButtonClicked: () -> Unit
+    navController: NavController
 ){
     var newUsername by remember { mutableStateOf(TextFieldValue(""))}
     var newEmailValueField by remember { mutableStateOf(TextFieldValue(""))}
@@ -499,7 +517,7 @@ fun CreateAccountScreen (
 
         //navigating buttons
         Button(
-            onClick = { },
+            onClick = { navController.navigate("three") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp, 12.dp)
@@ -513,7 +531,7 @@ fun CreateAccountScreen (
         Spacer(modifier = Modifier.size(12.dp))
 
         TextButton(
-            onClick = { }
+            onClick = { navController.navigate("two") }
         ) {
             Text(
                 text = stringResource(id = R.string.screenCreateAccount_textbutton_login),
@@ -524,7 +542,7 @@ fun CreateAccountScreen (
 
 @Composable
 fun TodoListScreen (
-    onButtonClicked: () -> Unit
+    onButtonClicked: @Composable () -> Unit
 ){
     /* TODO */
 }

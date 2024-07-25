@@ -18,9 +18,9 @@
     <string name="screenCreateAccount_textbutton_login">Log In</string>
 
     <!-- LogInScreen String Resources -->
-    <string name="logInScreen_title">Todo</string>
-    <string name="logInScreen_outlinedtextfield_email">Email Address</string>
-    <string name="logInScreen_outlinedtextfield_password">Password</string>
-    <string name="logInScreen_button_login">Log In</string>
-    <string name="logInScreen_textbutton_create">Create Account</string>
+    <string name="screenLogIn_title">Todo</string>
+    <string name="screenLogIn_outlinedtextfield_email">Email Address</string>
+    <string name="screenLogIn_outlinedtextfield_password">Password</string>
+    <string name="screenLogIn_button_login">Log In</string>
+    <string name="screenLogIn_textbutton_create">Create Account</string>
 </resources>
