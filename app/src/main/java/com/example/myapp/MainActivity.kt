@@ -1,53 +1,3 @@
-/*
-    Requirements:
-    Asg 1
-        * One screen
-        * main screen has a top bar, it will have the name of the app
-        * to add a new todo item:
-            ** bottom sheet pops up by clicking a floating action button with the "+" icon
-
-            ** user will be able to:
-                - the "x" button will clear the text field
-                - the save button will be saved at the bottom of the list. The bottom sheet is dismissed.
-                - the cancel button does not save to the list. The bottom sheet is dismissed.
-
-         * main screen has a list of todo items:
-            ** todo item will have a text which will be the todo item name
-            ** todo item will have a checkbox which can be toggle
-                - check = item completed
-                - uncheck = item uncompleted
-
-    Compose:
-        * save button must be filled
-        * cancel button must be unfilled, have an outline
-        * textfield must be an outline text field
-        * todo items must have 12dp horizontal padding
-
-    Functional UI:
-        * tapping todo item check box must toggle the check box state
-        * tapping floating action button brings up bottom sheet
-        * typing text must update the contents of the text field
-        * tapping on the save button must add the todo and
-          update the list with the new todo in an UNCOMPLETED state.
-              - it must close the bottom sheet
-              - if there is NO TEXT when the button is tapped, UI must show error.
-                  NOTE: Can it be a pop up dialogue?
-        * tapping cancel button closes the bottom sheet, nothing is added
-        * tapping the "x" icon clears the text field
-
-    NOTES:
-    * allowed to use place holder data and data structures
-    * strings must be in strings.xml
-    * check many times what I push to GitHub is what I expect
-    * submit the the link to the Merge Request--any other links is a penalty
-    * branch name is correct
-
-    Reference:
-    https://medium.com/geekculture/add-remove-in-lazycolumn-list-aka-recyclerview-jetpack-compose-7c4a2464fc9f
-    https://stackoverflow.com/questions/68482228/how-to-clear-textfield-value-in-jetpack-compose
-    https://stackoverflow.com/questions/71534415/composable-invocations-can-only-happen-from-the-context-of-a-composable-functio
-
- */
 package com.example.myapp
 
 /*
@@ -97,6 +47,13 @@ package com.example.myapp
         * use MVVM
         * Use Kotlin Coroutine in your Retrofit functions
             ** ViewModel super class provides viewModelScope for calling/creating coroutines
+
+    Reference:
+    [Assignment 1]
+    https://medium.com/geekculture/add-remove-in-lazycolumn-list-aka-recyclerview-jetpack-compose-7c4a2464fc9f
+    https://stackoverflow.com/questions/68482228/how-to-clear-textfield-value-in-jetpack-compose
+    https://stackoverflow.com/questions/71534415/composable-invocations-can-only-happen-from-the-context-of-a-composable-functio
+
  */
 
 import android.annotation.SuppressLint
@@ -152,6 +109,10 @@ import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 class MainActivity : AppCompatActivity() {
+
+    private val createAccountViewModel : CreateAccountViewModel = CreateAccountViewModel()
+    private val loginViewModel : LogInViewModel = LogInViewModel()
+    private val todoListViewModel : TodoListViewModel = TodoListViewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
