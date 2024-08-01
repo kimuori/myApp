@@ -1,5 +1,5 @@
 package com.example.myapp
 
 class LogInViewModel {
-    //TODO
+    private val apiService : ApiService = ApiService()
 }

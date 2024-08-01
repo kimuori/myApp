@@ -56,6 +56,9 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.moshi)
     implementation(libs.moshi.kotlin)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.moshi)
+    implementation(libs.converter.gson)
     implementation(libs.android.coroutines)
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -69,4 +72,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
 }

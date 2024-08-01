@@ -48,6 +48,37 @@ package com.example.myapp
         * Use Kotlin Coroutine in your Retrofit functions
             ** ViewModel super class provides viewModelScope for calling/creating coroutines
 
+    [HTTP & REST API]
+    Create an API Service using Retrofit
+
+    ** User To-do
+    GET /api/users/{user_id}/todos
+        **fetches the list of to-dos for user with id {user_id}
+
+    POST /api/users/{user_id}/todos
+        **creates a new to-do for user with id {user_id}
+
+    PUT /api/users/{user_id}/todos/{id}
+        **updates a to-do item for id {user_id} with to-do id {id}
+
+    ** User
+    POST /api/users/register
+        **creates a new user returns a user object with token and id
+
+    POST /api/users/login
+        **logs a user in and returns a user object with token and id
+
+    * Create data classes for each of request and response types.
+        * use these types in your Retrofit function definitions
+        * DO NOT use Strings to represent complex data types!
+            **the same data types are used in multiple routes
+            **you should reuse data classes when possible
+
+            Example:
+            [POST /api/users/register] and [POST /api/users/login]
+            Both return the same data type.
+            Use the SAME return type for both of those functions.
+
     Reference:
     [Assignment 1]
     https://medium.com/geekculture/add-remove-in-lazycolumn-list-aka-recyclerview-jetpack-compose-7c4a2464fc9f
@@ -114,6 +145,10 @@ class MainActivity : AppCompatActivity() {
     private val loginViewModel : LogInViewModel = LogInViewModel()
     private val todoListViewModel : TodoListViewModel = TodoListViewModel()
 
+    companion object {
+        const val MYKEY = "7c020d82-368e-4d63-abbc-be98dc7e7730"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -121,6 +156,8 @@ class MainActivity : AppCompatActivity() {
             ComposeView(this).apply{
                 setContent{
                     val navController = rememberNavController()
+
+                    val client = ApiClient.apiService
 
                     NavHost(navController = navController, startDestination = "one" ){
                         composable( route = "one"){
