@@ -1,8 +1,12 @@
 package com.example.myapp
 
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.squareup.moshi.Json
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.Body
@@ -11,6 +15,13 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+
+/*
+    Reference Used:
+    https://medium.com/@aleslam12345/use-retrofit-with-kotlin-81cb938dfd10
+    https://developer.android.com/codelabs/android-preferences-datastore
+    https://www.youtube.com/watch?v=tYZ2pGS95K4
+ */
 
 /*
     Response Body for POST (register)
@@ -83,6 +94,14 @@ interface ApiService {
 
 object ApiClient {
 
+    private val loggingInterceptor  = HttpLoggingInterceptor()
+        .setLevel(HttpLoggingInterceptor.Level.BODY)
+
+    private val okHttpClient = OkHttpClient
+        .Builder()
+        .addInterceptor(loggingInterceptor)
+        .build()
+
     private val moshi: Moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
         .build()
@@ -90,7 +109,17 @@ object ApiClient {
     private val retrofit: Retrofit = Retrofit.Builder()
         .baseUrl("https://todos.simpleapi.dev/")
         .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .client(okHttpClient)
         .build()
 
     val apiService: ApiService = retrofit.create(ApiService::class.java)
+    }
+
+/*
+    NOTE: I decided to use DataStore instead of SharedPreferences
+    because it was a bit more intuitive to understand.
+ */
+object PreferenceKeys {
+    val USER_ID = intPreferencesKey("user_id")
+    val BEARER_TOKEN = stringPreferencesKey("token")
 }

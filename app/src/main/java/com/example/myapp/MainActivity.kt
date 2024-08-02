@@ -88,6 +88,8 @@ package com.example.myapp
  */
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -132,6 +134,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -140,12 +145,13 @@ import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 class MainActivity : AppCompatActivity() {
+    private val Context.datastore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
 
-    private val createAccountViewModel : CreateAccountViewModel = CreateAccountViewModel()
-    private val loginViewModel : LogInViewModel = LogInViewModel()
+    private val createAccountViewModel : CreateAccountViewModel = CreateAccountViewModel(datastore)
+    private val loginViewModel : LogInViewModel = LogInViewModel(datastore)
     private val todoListViewModel : TodoListViewModel = TodoListViewModel()
 
-    companion object {
+        companion object {
         const val MYKEY = "7c020d82-368e-4d63-abbc-be98dc7e7730"
     }
 
@@ -156,7 +162,6 @@ class MainActivity : AppCompatActivity() {
             ComposeView(this).apply{
                 setContent{
                     val navController = rememberNavController()
-
                     val client = ApiClient.apiService
 
                     NavHost(navController = navController, startDestination = "one" ){
