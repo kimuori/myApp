@@ -2,7 +2,6 @@ package com.example.myapp
 
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.squareup.moshi.Json
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
@@ -38,7 +37,7 @@ import retrofit2.http.Query
  */
 
 /*
-    Response Body for POST (to-do)
+    Response Body for POST (to-do, object)
     "...api/users/{116}/todos?apikey=###..."
     {
     "description": "Finish Assignment 2"
@@ -50,7 +49,7 @@ import retrofit2.http.Query
  */
 
 /*
-    Response Body for GET (to-do)
+    Response Body for GET (to-do, array)
     "...api/users/{116}/todos?apikey=###..."
     {
     "id": 1503
@@ -61,21 +60,17 @@ import retrofit2.http.Query
     "meta": null [ignore?]
     }
  */
-data class Todo (
-    @Json(name= "id") val id : Int,
-    @Json(name= "description") val description : String,
-    @Json(name= "completed") val completed : Boolean)
 
 interface ApiService {
 
     /*
-        Retrieve all todos
+        Retrieve all todos as an array of To-dos
      */
     @GET("api/users/{user_id}/todos")
     suspend fun getTodos (
         @Query("apikey") apiKey : String,
         @Header("authorization") bearerToken : String,
-        @Path("userId") userId : String
+        @Path("userId") userId : Int
     ) : List<Todo>
 
     /*
@@ -85,8 +80,8 @@ interface ApiService {
     suspend fun createTodo (
         @Query("apikey") apiKey : String,
         @Header("authorization") bearerToken : String,
-        @Path("userId") userId : String,
-        @Path("todoId") todoID : String,
+        @Path("userId") userId : Int,
+        @Path("todoId") todoId : Int,
         @Body todo: Todo
     ): Todo
 

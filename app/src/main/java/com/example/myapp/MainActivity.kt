@@ -89,7 +89,6 @@ package com.example.myapp
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -147,13 +146,18 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
     private val Context.datastore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
 
+    private val client = ApiClient.apiService
+    // example:
+    // client.createTodo(MYKEY, bearerToken="", userId= 166, todoId= 1506, todo = TodoCheckList("hello", false))
+
     private val createAccountViewModel : CreateAccountViewModel = CreateAccountViewModel(datastore)
     private val loginViewModel : LogInViewModel = LogInViewModel(datastore)
     private val todoListViewModel : TodoListViewModel = TodoListViewModel()
 
-        companion object {
+    companion object {
         const val MYKEY = "7c020d82-368e-4d63-abbc-be98dc7e7730"
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -161,9 +165,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(
             ComposeView(this).apply{
                 setContent{
-                    val navController = rememberNavController()
-                    val client = ApiClient.apiService
 
+                    val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = "one" ){
                         composable( route = "one"){
                             CreateAccountScreen(navController)
@@ -347,9 +350,6 @@ fun LogInScreen (
     }
 }
 
-//attributes that a to-do list has: a to-do string and a (un)checked box
-data class TodoCheckList(val todoCheckText: String?, val isChecked: Boolean)
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -359,7 +359,7 @@ fun TodoListScreen (){
     var showBottomSheet by remember { mutableStateOf(false)}
     var textValueField by remember { mutableStateOf(TextFieldValue("")) } //to-do list text
     var showAlertDialog by remember {  mutableStateOf(false) } //for UI error
-    val theList = remember {mutableListOf<TodoCheckList>() }
+    val theList = remember {mutableListOf<Todo>() }
 
     Scaffold(
         topBar = {
@@ -432,7 +432,7 @@ fun TodoListScreen (){
                                 Save button adds the to-do and updates the list with
                                 the new to-do. Finally, the bottom sheet closes.
                              */
-                            theList.add(TodoCheckList(textValueField.text, false))
+                            theList.add(Todo(textValueField.text, false))
 
                             scope.launch { sheetState.hide() }.invokeOnCompletion {
                                 if (!sheetState.isVisible) {
@@ -507,7 +507,7 @@ fun TodoListScreen (){
 
 @Composable
 private fun ColumnTodoListView(
-    theList: MutableList<TodoCheckList>
+    theList: MutableList<Todo>
 ) {
     LazyColumn(modifier = Modifier
         .padding(start = 12.dp, top = 113.dp, end = 12.dp, bottom = 0.dp)
@@ -524,9 +524,9 @@ private fun ColumnTodoListView(
                     .background(color = Color.Blue)
                     .fillMaxWidth()
             ){
-                var isChecked by remember { mutableStateOf(items.isChecked) } //unchecked box by default
+                var isChecked by remember { mutableStateOf(items.completed) } //unchecked box by default
                 Text(
-                    text = items.todoCheckText?: "",
+                    text = items.description?: "",
                     color = Color.White,
                     modifier = Modifier.padding(12.dp, 12.dp)
                 )
