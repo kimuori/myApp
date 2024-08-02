@@ -11,9 +11,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class LogInViewModel (
-    private val datastore: DataStore<Preferences>
+    //private val datastore: DataStore<Preferences>
 ) : ViewModel() {
     //todo
+    /*
     val userIdFlow: Flow<Int?> = datastore.data.map { preferences ->
         preferences[PreferenceKeys.USER_ID]
     }
@@ -39,4 +40,6 @@ class LogInViewModel (
             }
         }
     }
+
+     */
 }

@@ -144,14 +144,14 @@ import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 class MainActivity : AppCompatActivity() {
-    private val Context.datastore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
+    //private val Context.datastore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
 
     private val client = ApiClient.apiService
     // example:
     // client.createTodo(MYKEY, bearerToken="", userId= 166, todoId= 1506, todo = TodoCheckList("hello", false))
 
-    private val createAccountViewModel : CreateAccountViewModel = CreateAccountViewModel(datastore)
-    private val loginViewModel : LogInViewModel = LogInViewModel(datastore)
+    private val createAccountViewModel : CreateAccountViewModel = CreateAccountViewModel()
+    private val loginViewModel : LogInViewModel = LogInViewModel()
     private val todoListViewModel : TodoListViewModel = TodoListViewModel()
 
     companion object {
