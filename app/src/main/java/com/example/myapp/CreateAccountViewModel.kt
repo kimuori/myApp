@@ -34,11 +34,15 @@ class CreateAccountViewModel : ViewModel() {
     ){
         viewModelScope.launch {
             try{
-                val response = apiService.registerUser("7c020d82-368e-4d63-abbc-be98dc7e7730", RegisterRequestBody(email, name, password))
-                Log.d("CreateAccount", "Response: $response")
-                callback(response)
+                //Response Body returns User
+                val responseBody = apiService.registerUser(
+                    apiKey = "7c020d82-368e-4d63-abbc-be98dc7e7730",
+                    RegisterRequestBody(email, name, password)
+                )
+                Log.d("CreateAccount", "Response: $responseBody")
+                callback(responseBody)
             } catch (error: retrofit2.HttpException) {
-                Log.e("CreateAccount", "HTTP Error: ${error.code()}")
+                Log.e("CreateAccount", "HTTP Error: ${error.code()}, ${error.message()}")
                 callback(null)
             } catch (error: Exception){
                 callback(null)

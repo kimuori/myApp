@@ -54,6 +54,8 @@ interface ApiService {
 
 		NOTE: use apikey,
 		use the provided user_id via "id" and auth the "token".
+
+		@Path is required to replace {user_id} in the URL with a User's unique userId number
      */
     @POST("/api/users/{user_id}/todos")
     suspend fun createTodos(
@@ -71,7 +73,8 @@ interface ApiService {
              "id": 1859 (the unique to-do id number) [ignore?]
          */
     /******************************************************/
-    // No Response @Body required.
+    // NOTE: No Request @Body required.
+    // @Path is required to replace {user_id} in the URL with a User's unique userId number
     @GET("/api/users/{user_id}/todos")
     suspend fun getAllTodos(
         @Query("apiKey") apiKey: String,
@@ -79,7 +82,7 @@ interface ApiService {
         @Path("user_id") userId: Int
     ): List<Todo>
         /*
-            RESPONSE BODY for @GET :
+            RESPONSE BODY for @GET /api/users/{user_id}/todos:
             {
                 "description: string
                 "completed": boolean
@@ -97,6 +100,7 @@ interface ApiService {
             ...
          */
 
+    suspend fun getUser(): User
 }
 
 /*

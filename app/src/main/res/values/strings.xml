@@ -23,4 +23,11 @@
     <string name="screenLogIn_outlinedtextfield_password">Password</string>
     <string name="screenLogIn_button_login">Log In</string>
     <string name="screenLogIn_textbutton_create">Create Account</string>
+
+    <!-- Error validation -->
+    <string name="missing_multipleFields">Multiple fields are missing.</string>
+    <string name="missing_nameField">Name is required.</string>
+    <string name="missing_emailField">Email is required.</string>
+    <string name="missing_passwordField">Password is required.</string>
+
 </resources>

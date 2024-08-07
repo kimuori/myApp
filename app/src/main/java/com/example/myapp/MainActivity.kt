@@ -36,11 +36,10 @@ package com.example.myapp
     https://medium.com/@aleslam12345/use-retrofit-with-kotlin-81cb938dfd10
     https://developer.android.com/codelabs/android-preferences-datastore
     https://www.youtube.com/watch?v=tYZ2pGS95K4
+
  */
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -71,6 +70,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,6 +80,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
@@ -89,38 +90,40 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 class MainActivity : AppCompatActivity() {
-    //private val Context.datastore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
-
     private val createAccountViewModel : CreateAccountViewModel = CreateAccountViewModel()
     private val loginViewModel : LogInViewModel = LogInViewModel()
     private val todoListViewModel : TodoListViewModel = TodoListViewModel()
 
-    private lateinit var sharedPreferences: SharedPreferences
-
+    //private lateinit var viewBinding: ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(
             ComposeView(this).apply{
                 setContent{
-                    sharedPreferences = getSharedPreferences("userInfo", Context.MODE_PRIVATE)
+                    //the context, scope, and dataStore work together for data persistence
+                    //to store bearer token and user_id
+                    val context = LocalContext.current
+                    val scope = rememberCoroutineScope()
+                    val dataStore = PreferencesManager(context)
 
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = "one" ){
                         composable( route = "one"){
-                            CreateAccountScreen(navController, createAccountViewModel)
+                            CreateAccountScreen(navController, createAccountViewModel, scope, dataStore)
                         }
 
                         composable( route = "two"){
-                            LogInScreen(navController, loginViewModel)
+                            LogInScreen(navController, loginViewModel, scope, dataStore)
                         }
 
                         composable (route = "three"){
-                            TodoListScreen(todoListViewModel)
+                            TodoListScreen(todoListViewModel, scope, dataStore)
                         }
 
                     }
@@ -130,12 +133,15 @@ class MainActivity : AppCompatActivity() {
         )
 
     }
+
 }
 
 @Composable
 fun CreateAccountScreen (
     navController: NavController,
-    createAccountViewModel: CreateAccountViewModel
+    createAccountViewModel: CreateAccountViewModel,
+    scope: CoroutineScope,
+    dataStore: PreferencesManager,
 ){
     var newUsernameValueField by remember { mutableStateOf(TextFieldValue(""))}
     var newEmailValueField by remember { mutableStateOf(TextFieldValue(""))}
@@ -248,24 +254,27 @@ fun CreateAccountScreen (
                         errorAlertText = "Password is required."
                         showAlertDialog = true
                     }
-                    else -> {
-                        navController.navigate("three")
-                        /*
+                    else ->
                         createAccountViewModel.createAccount(
                             newEmailValueField.text,
                             newUsernameValueField.text,
-                            newPasswordValueField.text)
-                        { user ->
-
-                            //if the user exits
+                            newPasswordValueField.text
+                        ){ user ->
+                            navController.navigate("three") //temp
                             if (user != null) {
+
+                                //coroutine scope on storing Response Body via dataStore
+                                scope.launch {
+                                    dataStore.saveEmail(newEmailValueField.text)
+                                    dataStore.savePassword(newPasswordValueField.text)
+                                    dataStore.saveToken(user.token)
+                                    //NOTE: the response body for "id" originally responds in Int. Parsed into String.
+                                    dataStore.saveUserId(user.id.toString())
+                                }
                                 navController.navigate("three")
                             } else {
-                                errorAlertText = "Account creation failed. Please try again."
-                                showAlertDialog = true
+                                errorAlertText = "Login failed. Please try again."
                             }
-                        }
-                        */
                     }
                 }
                 //navController.navigate("three")
@@ -292,7 +301,9 @@ fun CreateAccountScreen (
 @Composable
 fun LogInScreen (
     navController: NavController,
-    loginViewModel: LogInViewModel
+    loginViewModel: LogInViewModel,
+    scope: CoroutineScope,
+    dataStore: PreferencesManager
 ){
     var emailValueField by remember { mutableStateOf(TextFieldValue(""))}
     var passwordValueField by remember { mutableStateOf(TextFieldValue(""))}
@@ -378,21 +389,49 @@ fun LogInScreen (
                         showAlertDialog = true
                     }
                     else -> {
-                        navController.navigate("three")
-                        /*
+                        //navController.navigate("three") //temp
                         loginViewModel.loginAccount(
                             emailValueField.text,
                             passwordValueField.text)
                         { user ->
-                            //if the user exits
+                            //if the User account exits
                             if (user != null) {
+                                /*
+                                    NOTE: based on observation, Logcat will log a response body
+                                    of the User object when request is successful.
+                                    Example:
+                                    User(id=###, email=myTest@mail.com, name=userA, token=xxx...)
+                                 */
+
+                                //coroutine scope on storing Response Body via dataStore
+                                scope.launch {
+                                    dataStore.saveEmail(emailValueField.text)
+                                    dataStore.savePassword(passwordValueField.text)
+                                    dataStore.saveToken(user.token)
+                                    //NOTE: the response body for "id" originally responds in Int. Parsed into String.
+                                    dataStore.saveUserId(user.id.toString())
+                                }
                                 navController.navigate("three")
                             } else {
+                                /*
+                                    NOTE: based on observation, login fails if the request
+                                    is not successful, despite that the User account object exists
+                                    prior to this development.
+
+                                    Adding an internet permission below to the AndroidManifest may have helped.
+                                        <uses-permission android:name="android.permission.INTERNET"/>
+                                        -   Successful requests to log in happened after this addition.
+                                 */
                                 errorAlertText = "Login failed. Please try again."
+
                             }
                         }
+                        //experimenting
+                        //loginViewModel.getEmail()
+                        //.emailString.observe(this, {
+                        //    viewBinding.helloworld.text = it.data.toString()
+                        //}
 
-                        */
                     }
                 }
                 //navController.navigate("three")
@@ -419,13 +458,19 @@ fun LogInScreen (
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TodoListScreen(todoListViewModel: TodoListViewModel) {
+fun TodoListScreen(
+    todoListViewModel: TodoListViewModel,
+    scope: CoroutineScope,
+    dataStore: PreferencesManager
+) {
     val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false)}
     var textValueField by remember { mutableStateOf(TextFieldValue("")) } //to-do list text
     var showAlertDialog by remember {  mutableStateOf(false) } //for UI error
-    val theList = remember {mutableListOf<Todo>() }
+    val theList = remember { mutableListOf<Todo>() }
+
+    val savedUserId = dataStore.getUserId
+    val savedBearToken = dataStore.getToken
 
     Scaffold(
         topBar = {
@@ -449,7 +494,7 @@ fun TodoListScreen(todoListViewModel: TodoListViewModel) {
 
     ){
         //innerPadding ->
-        ColumnTodoListView(theList)
+        ColumnTodoListView(theList, todoListViewModel, dataStore)
 
         //if FOA is clicked, show the BottomSheet
         if (showBottomSheet){
@@ -491,6 +536,29 @@ fun TodoListScreen(todoListViewModel: TodoListViewModel) {
                        Otherwise, it will add a new to-do list.
                      */
                     onClick = {
+                        when {
+                            textValueField.text.isBlank() || textValueField.text.isEmpty() -> {
+                                showAlertDialog = true //show error
+                            } else -> {
+                                todoListViewModel.addTodoObject(
+                                    userId = savedUserId.toString(),
+                                    bearerToken = savedBearToken.toString(),
+                                    description = textValueField.text,
+                                    completed = false
+                                ) {
+                                    theList.add(Todo(textValueField.text, false))
+                                }
+                                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                    if (!sheetState.isVisible) {
+                                        showBottomSheet = false
+                                    }
+                                }
+
+                                //finally, clear the text as the bottomsheet dismisses
+                                textValueField = TextFieldValue("")
+                            }
+                        }
+                        /*
                         if (textValueField.text.isBlank() || textValueField.text.isEmpty()) {
                             showAlertDialog = true //show error
                         } else {
@@ -498,17 +566,13 @@ fun TodoListScreen(todoListViewModel: TodoListViewModel) {
                                 Save button adds the to-do and updates the list with
                                 the new to-do. Finally, the bottom sheet closes.
                              */
+                            //todoListViewModel.addTodoObject(dataStore())
                             theList.add(Todo(textValueField.text, false))
 
-                            scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                if (!sheetState.isVisible) {
-                                    showBottomSheet = false
-                                }
-                            }
-
-                            //finally, clear the text as the bottomsheet dismisses
-                            textValueField = TextFieldValue("")
+                           c
                         }
+
+                         */
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -573,34 +637,69 @@ fun TodoListScreen(todoListViewModel: TodoListViewModel) {
 
 @Composable
 private fun ColumnTodoListView(
-    theList: MutableList<Todo>
+    theList: MutableList<Todo>,
+    todoListViewModel: TodoListViewModel,
+    dataStore: PreferencesManager
 ) {
+    val savedUserId = dataStore.getUserId
+    val savedBearToken = dataStore.getToken
+
     LazyColumn(modifier = Modifier
         .padding(start = 12.dp, top = 113.dp, end = 12.dp, bottom = 0.dp)
         .background(color = Color.Green)
         .fillMaxSize()
 
     ){
-        items(theList){
-                items ->
-            Row (
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .background(color = Color.Blue)
-                    .fillMaxWidth()
-            ){
-                var isChecked by remember { mutableStateOf(items.completed) } //unchecked box by default
-                Text(
-                    text = items.description?: "",
-                    color = Color.White,
-                    modifier = Modifier.padding(12.dp, 12.dp)
-                )
-                Checkbox(
-                    checked = isChecked,
-                    onCheckedChange = { isChecked = it}
-                )
+        todoListViewModel.showAllTodos(
+            userId = savedUserId.toString(),
+            bearerToken = savedBearToken.toString()
+        ){
+            //shows List<To-do> in LazyList
+            items(theList){
+                    items ->
+                Row (
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .background(color = Color.Blue)
+                        .fillMaxWidth()
+                ){
+                    var isChecked by remember { mutableStateOf(items.completed) } //unchecked box by default
+                    Text(
+                        text = items.description?: "",
+                        color = Color.White,
+                        modifier = Modifier.padding(12.dp, 12.dp)
+                    )
+                    Checkbox(
+                        checked = isChecked,
+                        onCheckedChange = { isChecked = it}
+                    )
+                }
             }
         }
+        /*
+            items(theList){
+                items ->
+                Row (
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .background(color = Color.Blue)
+                        .fillMaxWidth()
+                ){
+                    var isChecked by remember { mutableStateOf(items.completed) } //unchecked box by default
+                    Text(
+                        text = items.description?: "",
+                        color = Color.White,
+                        modifier = Modifier.padding(12.dp, 12.dp)
+                    )
+                    Checkbox(
+                        checked = isChecked,
+                        onCheckedChange = { isChecked = it}
+                    )
+                }
+            }
+         */
+
     }
 }

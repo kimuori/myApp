@@ -16,9 +16,21 @@ import kotlinx.coroutines.launch
 class LogInViewModel () : ViewModel() {
 
     private val apiService: ApiService = ApiClient.apiService
+    private suspend fun getUser(): User{
+        return apiService.getUser()
+    }
 
     private val _emailString: MutableLiveData<String> = MutableLiveData("")
-    val emailString : LiveData<String> = _emailString
+    //val emailString : LiveData<String> = _emailString
+    val emailString : LiveData<String>
+        get() = _emailString
+
+    fun getEmail(){
+        viewModelScope.launch {
+            val result = getUser()
+            _emailString.postValue(result.email)
+        }
+    }
 
     private val _passwordString: MutableLiveData<String> = MutableLiveData("")
     val passwordString: LiveData<String> = _passwordString
@@ -27,6 +39,8 @@ class LogInViewModel () : ViewModel() {
         REQUEST BODY for POST /api/users/login:
           "email": "user1@mail.com",
 		  "password": "password"
+
+		"email" and "password" parameters required for LoginRequestBody
      */
     fun loginAccount(
         email: String,
@@ -35,20 +49,21 @@ class LogInViewModel () : ViewModel() {
     ) {
         viewModelScope.launch {
             try{
-                val response = apiService.loginUser(
-                    "7c020d82-368e-4d63-abbc-be98dc7e7730",
-                    LoginRequestBody(email, password))
-                Log.d("LogInAccount", "Response: $response")
-                callback(response)
+                //Response Body returns User
+                val responseBody = apiService.loginUser(
+                    apiKey= "7c020d82-368e-4d63-abbc-be98dc7e7730",
+                    LoginRequestBody(email, password)
+                )
+                Log.d("LogInAccount", "Response: $responseBody")
+                callback(responseBody)
             } catch (error: retrofit2.HttpException) {
-                Log.e("LogInAccount", "HTTP Error: ${error.code()}")
+                Log.e("LogInAccount", "HTTP Error: ${error.code()}, ${error.message()}")
                 callback(null)
             } catch (error: Exception){
                 callback(null)
             }
         }
     }
-    //todo
 }
 /*
     val userIdFlow: Flow<Int?> = datastore.data.map { preferences ->
