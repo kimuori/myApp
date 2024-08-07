@@ -3,23 +3,6 @@ package com.example.myapp
 /*
     Assignment 2
 
-    [UI]
-    Create a Login UI and Create Account UI.
-    * The main title is "To-do"
-
-    **  Login:
-            * email
-            * password
-            **Log in button
-            **"Dont have an account?" text link
-
-    **  Create Account
-            * name
-            * email
-            *password
-            **Create Account button
-            **"Log In" text link
-
     [HTTP REQUESTS & APP BEHAVIOR]
     The main screen of the application should GET the list of the logged in user’s todos from the server.
         When tapping the check box to “complete” a to-do item, the app should PUT that to the server.
@@ -43,52 +26,21 @@ package com.example.myapp
     [ERROR HANDLING]
     For every error, display an error dialogue.
 
-    [REQUIREMENTS]
-        * use MVVM
-        * Use Kotlin Coroutine in your Retrofit functions
-            ** ViewModel super class provides viewModelScope for calling/creating coroutines
-
-    [HTTP & REST API]
-    Create an API Service using Retrofit
-
-    ** User To-do
-    GET /api/users/{user_id}/todos
-        **fetches the list of to-dos for user with id {user_id}
-
-    POST /api/users/{user_id}/todos
-        **creates a new to-do for user with id {user_id}
-
-    PUT /api/users/{user_id}/todos/{id}
-        **updates a to-do item for id {user_id} with to-do id {id}
-
-    ** User
-    POST /api/users/register
-        **creates a new user returns a user object with token and id
-
-    POST /api/users/login
-        **logs a user in and returns a user object with token and id
-
-    * Create data classes for each of request and response types.
-        * use these types in your Retrofit function definitions
-        * DO NOT use Strings to represent complex data types!
-            **the same data types are used in multiple routes
-            **you should reuse data classes when possible
-
-            Example:
-            [POST /api/users/register] and [POST /api/users/login]
-            Both return the same data type.
-            Use the SAME return type for both of those functions.
-
     Reference:
     [Assignment 1]
     https://medium.com/geekculture/add-remove-in-lazycolumn-list-aka-recyclerview-jetpack-compose-7c4a2464fc9f
     https://stackoverflow.com/questions/68482228/how-to-clear-textfield-value-in-jetpack-compose
     https://stackoverflow.com/questions/71534415/composable-invocations-can-only-happen-from-the-context-of-a-composable-functio
 
+    [Assignment 2]
+    https://medium.com/@aleslam12345/use-retrofit-with-kotlin-81cb938dfd10
+    https://developer.android.com/codelabs/android-preferences-datastore
+    https://www.youtube.com/watch?v=tYZ2pGS95K4
  */
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -133,9 +85,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -146,18 +95,11 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
     //private val Context.datastore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
 
-    private val client = ApiClient.apiService
-    // example:
-    // client.createTodo(MYKEY, bearerToken="", userId= 166, todoId= 1506, todo = TodoCheckList("hello", false))
-
     private val createAccountViewModel : CreateAccountViewModel = CreateAccountViewModel()
     private val loginViewModel : LogInViewModel = LogInViewModel()
     private val todoListViewModel : TodoListViewModel = TodoListViewModel()
 
-    companion object {
-        const val MYKEY = "7c020d82-368e-4d63-abbc-be98dc7e7730"
-    }
-
+    private lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -165,19 +107,20 @@ class MainActivity : AppCompatActivity() {
         setContentView(
             ComposeView(this).apply{
                 setContent{
+                    sharedPreferences = getSharedPreferences("userInfo", Context.MODE_PRIVATE)
 
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = "one" ){
                         composable( route = "one"){
-                            CreateAccountScreen(navController)
+                            CreateAccountScreen(navController, createAccountViewModel)
                         }
 
                         composable( route = "two"){
-                            LogInScreen(navController)
+                            LogInScreen(navController, loginViewModel)
                         }
 
                         composable (route = "three"){
-                            TodoListScreen()
+                            TodoListScreen(todoListViewModel)
                         }
 
                     }
@@ -191,11 +134,30 @@ class MainActivity : AppCompatActivity() {
 
 @Composable
 fun CreateAccountScreen (
-    navController: NavController
+    navController: NavController,
+    createAccountViewModel: CreateAccountViewModel
 ){
-    var newUsername by remember { mutableStateOf(TextFieldValue(""))}
+    var newUsernameValueField by remember { mutableStateOf(TextFieldValue(""))}
     var newEmailValueField by remember { mutableStateOf(TextFieldValue(""))}
-    var newPasswordValueField by remember { mutableStateOf(TextFieldValue(""))}
+    var newPasswordValueField by remember { mutableStateOf(TextFieldValue("")) }
+
+    var errorAlertText by remember { mutableStateOf("") }
+    var showAlertDialog by remember {mutableStateOf(false)}
+
+    if (showAlertDialog) {
+        AlertDialog(
+            onDismissRequest = { showAlertDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = { showAlertDialog = false }
+                ) {
+                    Text(stringResource(id = R.string.alertdialog_dismisstext))
+                }
+            },
+            title = { Text(text = stringResource(id = R.string.alertdialog_title))},
+            text = { Text (errorAlertText)}
+        )
+    }
 
     Column (
         modifier = Modifier
@@ -211,9 +173,9 @@ fun CreateAccountScreen (
         Spacer(modifier = Modifier.size(24.dp))
 
         OutlinedTextField(
-            value = newUsername,
+            value = newUsernameValueField,
             onValueChange = {
-                newUsername = it
+                newUsernameValueField = it
             },
             label = {
                 Text( text = stringResource(id = R.string.screenCreateAccount_outlinedtextfield_name) )
@@ -258,7 +220,56 @@ fun CreateAccountScreen (
 
         //navigating buttons
         Button(
-            onClick = { navController.navigate("three") },
+            onClick = {
+                when {
+                    //when multiple fields are missing
+                    newUsernameValueField.text.isBlank() && newEmailValueField.text.isBlank() && newPasswordValueField.text.isBlank() -> {
+                        errorAlertText = "Multiple fields are missing."
+                        showAlertDialog = true
+                    }
+                    ((newUsernameValueField.text.isBlank() && newEmailValueField.text.isBlank()) ||
+                    (newEmailValueField.text.isBlank() && newPasswordValueField.text.isBlank()) ||
+                    newPasswordValueField.text.isBlank() && newUsernameValueField.text.isBlank()) -> {
+                        errorAlertText = "Multiple fields are missing."
+                        showAlertDialog = true
+                    }
+                    //when name text field is missing
+                    newUsernameValueField.text.isBlank() -> {
+                        errorAlertText = "Name is required."
+                        showAlertDialog = true
+                    }
+                    //when email text field is missing
+                    newEmailValueField.text.isBlank() -> {
+                        errorAlertText = "Email is required."
+                        showAlertDialog = true
+                    }
+                    //when password text field is missing
+                    newPasswordValueField.text.isBlank() -> {
+                        errorAlertText = "Password is required."
+                        showAlertDialog = true
+                    }
+                    else -> {
+                        navController.navigate("three")
+                        /*
+                        createAccountViewModel.createAccount(
+                            newEmailValueField.text,
+                            newUsernameValueField.text,
+                            newPasswordValueField.text)
+                        { user ->
+
+                            //if the user exits
+                            if (user != null) {
+                                navController.navigate("three")
+                            } else {
+                                errorAlertText = "Account creation failed. Please try again."
+                                showAlertDialog = true
+                            }
+                        }
+                        */
+                    }
+                }
+                //navController.navigate("three")
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp, 12.dp)
@@ -280,10 +291,29 @@ fun CreateAccountScreen (
 
 @Composable
 fun LogInScreen (
-    navController : NavController
+    navController: NavController,
+    loginViewModel: LogInViewModel
 ){
     var emailValueField by remember { mutableStateOf(TextFieldValue(""))}
     var passwordValueField by remember { mutableStateOf(TextFieldValue(""))}
+
+    var errorAlertText by remember { mutableStateOf("") }
+    var showAlertDialog by remember {mutableStateOf(false)}
+
+    if (showAlertDialog) {
+        AlertDialog(
+            onDismissRequest = { showAlertDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = { showAlertDialog = false }
+                ) {
+                    Text(stringResource(id = R.string.alertdialog_dismisstext))
+                }
+            },
+            title = { Text(text = stringResource(id = R.string.alertdialog_title))},
+            text = { Text (errorAlertText)}
+        )
+    }
 
     Column (
         modifier = Modifier
@@ -330,7 +360,43 @@ fun LogInScreen (
 
         //navigating buttons
         Button(
-            onClick = { navController.navigate("three") },
+            onClick = {
+                when {
+                    //when multiple text fields are missing
+                    emailValueField.text.isBlank() && emailValueField.text.isBlank() ->{
+                        errorAlertText = "Both fields are missing."
+                        showAlertDialog = true
+                    }
+                    //when email text field is missing
+                    emailValueField.text.isBlank() -> {
+                        errorAlertText = "Email is required."
+                        showAlertDialog = true
+                    }
+                    //when password text field is missing
+                    passwordValueField.text.isBlank() -> {
+                        errorAlertText = "Password is required."
+                        showAlertDialog = true
+                    }
+                    else -> {
+                        navController.navigate("three")
+                        /*
+                        loginViewModel.loginAccount(
+                            emailValueField.text,
+                            passwordValueField.text)
+                        { user ->
+                            //if the user exits
+                            if (user != null) {
+                                navController.navigate("three")
+                            } else {
+                                errorAlertText = "Login failed. Please try again."
+                            }
+                        }
+
+                        */
+                    }
+                }
+                //navController.navigate("three")
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp, 12.dp)
@@ -353,7 +419,7 @@ fun LogInScreen (
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TodoListScreen (){
+fun TodoListScreen(todoListViewModel: TodoListViewModel) {
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false)}

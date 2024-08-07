@@ -68,6 +68,7 @@ dependencies {
     implementation (libs.okhttp3.logging.interceptor)
     implementation ("androidx.datastore:datastore-preferences:1.1.1")
     implementation (libs.material)
+    implementation(libs.firebase.firestore.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

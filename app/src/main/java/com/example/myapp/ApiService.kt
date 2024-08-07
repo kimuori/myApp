@@ -1,13 +1,6 @@
 package com.example.myapp
 
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
+import android.content.Context
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -15,106 +8,172 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-/*
-    Reference Used:
-    https://medium.com/@aleslam12345/use-retrofit-with-kotlin-81cb938dfd10
-    https://developer.android.com/codelabs/android-preferences-datastore
-    https://www.youtube.com/watch?v=tYZ2pGS95K4
- */
-
-/*
-    Response Body for POST (register)
-    "...api/users/register?apikey=###..."
-    {
-    "name": "string"
-    "email": "user2@email.com" [use]
-    "enabled": true
-    "token": "###..." [use]
-        (NOTE: this token is used to authorize)
-    "admin": false
-    "id": 116 [use]
-    }
- */
-
-/*
-    Response Body for POST (to-do, object)
-    "...api/users/{116}/todos?apikey=###..."
-    {
-    "description": "Finish Assignment 2"
-    "completed": false
-    "user_id": 166 [ignore]
-    "author": "string" [ignore]
-    "id": 1503
-    }
- */
-
-/*
-    Response Body for GET (to-do, array)
-    "...api/users/{116}/todos?apikey=###..."
-    {
-    "id": 1503
-    "user_id": 166 [ignore?]
-    "description": "Finish Assignment 2"
-    "completed": 0
-    "author": "string" [ignore?]
-    "meta": null [ignore?]
-    }
- */
-
 interface ApiService {
-
     /*
-        Retrieve all todos as an array of To-dos
-     */
-    @GET("api/users/{user_id}/todos")
-    suspend fun getTodos (
-        @Query("apikey") apiKey : String,
-        @Header("authorization") bearerToken : String,
-        @Path("userId") userId : Int
-    ) : List<Todo>
-
+        REQUEST BODY for POST /api/users/register:
+            "email": "user1@mail.com",
+            "name": "string", [ignore]
+            "password": "password"
+    */
+    @POST("/api/users/register")
+    suspend fun registerUser(
+        @Query("apikey") apiKey: String,
+        @Body request: RegisterRequestBody
+    ): User
+        /*
+            RESPONSE BODY for POST /api/users/register:
+            "id": int
+            "name": string
+            "email": string
+            "token": string [given]
+         */
+    /******************************************************/
     /*
-        Create a new todos for current user
+        REQUEST BODY for POST /api/users/login:
+          "email": "user1@mail.com",
+		  "password": "password"
      */
-    @POST("api/users/{user_id}/todos")
-    suspend fun createTodo (
-        @Query("apikey") apiKey : String,
-        @Header("authorization") bearerToken : String,
-        @Path("userId") userId : Int,
-        @Path("todoId") todoId : Int,
-        @Body todo: Todo
+    @POST("/api/users/login")
+    suspend fun loginUser(
+        @Query("apikey") apiKey: String,
+        @Body request: LoginRequestBody
+    ): User
+        /*
+            RESPONSE BODY for POST /api/users/login:
+            "id": int
+            "name": string
+            "email": string
+            "token": string [given]
+         */
+    /******************************************************/
+    /*
+        REQUEST BODY for POST /api/users/{user_id}/todos:
+          "description": string
+		  "completed": boolean
+		  "meta": {} [ignore]
+
+		NOTE: use apikey,
+		use the provided user_id via "id" and auth the "token".
+     */
+    @POST("/api/users/{user_id}/todos")
+    suspend fun createTodos(
+        @Query("apiKey") apiKey: String,
+        @Header("Authorization") bearerToken: String,
+        @Path("user_id") userId: Int,
+        @Body request: TodoRequestBody
     ): Todo
+        /*
+             RESPONSE BODY for POST /api/users/{user_id}/todos:
+             "description: string
+             "completed": boolean
+             "user_id": int (the user account "id") [ignore?]
+             "author": string (the user account "name") [ignore]
+             "id": 1859 (the unique to-do id number) [ignore?]
+         */
+    /******************************************************/
+    // No Response @Body required.
+    @GET("/api/users/{user_id}/todos")
+    suspend fun getAllTodos(
+        @Query("apiKey") apiKey: String,
+        @Header("Authorization") bearerToken: String,
+        @Path("user_id") userId: Int
+    ): List<Todo>
+        /*
+            RESPONSE BODY for @GET :
+            {
+                "description: string
+                "completed": boolean
+                "user_id": int (the user account "id") [ignore?]
+                "author": string (the user account "name") [ignore]
+                "id": 1859 (the unique to-do id number) [ignore?]
+            }
+            {
+                "description: string
+                "completed": boolean
+                "user_id": int (the user account "id") [ignore?]
+                "author": string (the user account "name") [ignore]
+                "id": 1859 (the unique to-do id number) [ignore?]
+            }
+            ...
+         */
 
 }
 
-object ApiClient {
-
-    private val loggingInterceptor  = HttpLoggingInterceptor()
-        .setLevel(HttpLoggingInterceptor.Level.BODY)
-
-    private val okHttpClient = OkHttpClient
-        .Builder()
-        .addInterceptor(loggingInterceptor)
-        .build()
-
-    private val moshi: Moshi = Moshi.Builder()
-        .add(KotlinJsonAdapterFactory())
-        .build()
-
-    private val retrofit: Retrofit = Retrofit.Builder()
-        .baseUrl("https://todos.simpleapi.dev/")
-        .addConverterFactory(MoshiConverterFactory.create(moshi))
-        .client(okHttpClient)
-        .build()
-
-    val apiService: ApiService = retrofit.create(ApiService::class.java)
-    }
+/*
+    Request Body to submit a to-do description
+    and completion tag for To-doList ViewModel.
+    NOTE: "meta:{}" is ignored.
+*/
+data class TodoRequestBody (
+    val description: String,
+    val completed: Boolean,
+)
 
 /*
-    NOTE: I decided to use DataStore instead of SharedPreferences
-    because it was a bit more intuitive to understand.
+    NOTE: "id" via todos is the "userId" in source code
  */
+data class User (
+    val id: Int,
+    val email: String,
+    val name: String,
+    val token: String
+)
+
+/*
+    Request Body to submit email and password for Register ViewModel.
+    NOTE: "name" is ignored.
+*/
+data class RegisterRequestBody (
+    val email: String,
+    val name: String,
+    val password: String
+)
+
+/*
+    Request Body to submit email and password for LogIn ViewModel.
+    NOTE: "name" is ignored.
+*/
+data class LoginRequestBody (
+    val email: String,
+    val password: String
+)
+
+/*
 object PreferenceKeys {
     val USER_ID = intPreferencesKey("user_id")
     val BEARER_TOKEN = stringPreferencesKey("token")
 }
+ */
+
+/*
+[HTTP & REST API]
+    Create an API Service using Retrofit
+
+    ** User To-do
+    GET /api/users/{user_id}/todos
+        **fetches the list of to-dos for user with id {user_id}
+
+    POST /api/users/{user_id}/todos
+        **creates a new to-do for user with id {user_id}
+
+    PUT /api/users/{user_id}/todos/{id}
+        **updates a to-do item for id {user_id} with to-do id {id}
+
+    ** User
+    POST /api/users/register
+        **creates a new user returns a user object with token and id
+
+    POST /api/users/login
+        **logs a user in and returns a user object with token and id
+
+    * Create data classes for each of request and response types.
+        * use these types in your Retrofit function definitions
+        * DO NOT use Strings to represent complex data types!
+            **the same data types are used in multiple routes
+            **you should reuse data classes when possible
+
+            Example:
+            [POST /api/users/register] and [POST /api/users/login]
+            Both return the same data type.
+            Use the SAME return type for both of those functions.
+ */
