@@ -18,7 +18,13 @@ firebaseFirestoreKtx = "25.0.0"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
+junit = { group = "org.junit.jupiter", name = "junit-jupiter-api", version = "5.8.2" }
+junit-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version = "5.8.2" }
+androidx-arch-core = { group = "androidx.arch.core", name = "core-testing", version = "2.2.0" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version = "1.7.3" }
+mockk-android = { group = "io.mockk", name = "mockk-android", version = "1.13.12" }
+mockk-agent-android = { group = "io.mockk", name = "mockk-agent-android", version = ":1.13.12" }
+
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }

@@ -16,6 +16,21 @@ import kotlinx.coroutines.launch
 class LogInViewModel () : ViewModel() {
 
     private val apiService: ApiService = ApiClient.apiService
+
+    //Added for testing
+    private val _userState = MutableLiveData<User>()
+    val userState: LiveData<User> get() = _userState
+
+    //created to a view state
+    private val _viewState = MutableLiveData<ViewState>()
+    val viewState: LiveData<ViewState> get() = _viewState
+
+    sealed class ViewState {
+        data object Loading : ViewState()
+        data class Error(val message: String) : ViewState()
+        data object Success : ViewState()
+    }
+
     private suspend fun getUser(): User{
         return apiService.getUser()
     }
@@ -48,18 +63,24 @@ class LogInViewModel () : ViewModel() {
         callback: (User?) -> Unit
     ) {
         viewModelScope.launch {
+            _viewState.postValue(ViewState.Loading) //loading
             try{
                 //Response Body returns User
                 val responseBody = apiService.loginUser(
                     apiKey= "7c020d82-368e-4d63-abbc-be98dc7e7730",
                     LoginRequestBody(email, password)
                 )
+                _viewState.postValue(ViewState.Success) //success state
+                _userState.postValue(responseBody) //show result for userState
                 Log.d("LogInAccount", "Response: $responseBody")
                 callback(responseBody)
             } catch (error: retrofit2.HttpException) {
+                _viewState.postValue(ViewState.Error("Failed HTTP Response")) //error state
                 Log.e("LogInAccount", "HTTP Error: ${error.code()}, ${error.message()}")
                 callback(null)
             } catch (error: Exception){
+                _viewState.postValue(ViewState.Error("Failed, other reasons")) //error state
+                error.printStackTrace()
                 callback(null)
             }
         }

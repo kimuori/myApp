@@ -277,7 +277,7 @@ fun CreateAccountScreen (
                             }
                     }
                 }
-                //navController.navigate("three")
+                //navController.navigate("three") //temp
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -322,7 +322,7 @@ fun LogInScreen (
                 }
             },
             title = { Text(text = stringResource(id = R.string.alertdialog_title))},
-            text = { Text (errorAlertText)}
+            text = { Text (errorAlertText) }
         )
     }
 
@@ -373,11 +373,6 @@ fun LogInScreen (
         Button(
             onClick = {
                 when {
-                    //when multiple text fields are missing
-                    emailValueField.text.isBlank() && emailValueField.text.isBlank() ->{
-                        errorAlertText = "Both fields are missing."
-                        showAlertDialog = true
-                    }
                     //when email text field is missing
                     emailValueField.text.isBlank() -> {
                         errorAlertText = "Email is required."
@@ -386,6 +381,11 @@ fun LogInScreen (
                     //when password text field is missing
                     passwordValueField.text.isBlank() -> {
                         errorAlertText = "Password is required."
+                        showAlertDialog = true
+                    }
+                    //when multiple text fields are missing
+                    (emailValueField.text.isBlank() && emailValueField.text.isBlank()) ->{
+                        errorAlertText = "Multiple fields are missing."
                         showAlertDialog = true
                     }
                     else -> {
@@ -412,6 +412,7 @@ fun LogInScreen (
                                     dataStore.saveUserId(user.id.toString())
                                 }
                                 navController.navigate("three")
+
                             } else {
                                 /*
                                     NOTE: based on observation, login fails if the request
@@ -421,19 +422,18 @@ fun LogInScreen (
                                     Adding an internet permission below to the AndroidManifest may have helped.
                                         <uses-permission android:name="android.permission.INTERNET"/>
                                         -   Successful requests to log in happened after this addition.
+
+                                    NOTE: Error login fail UI alert is not reached if
+                                    placing incorrect email and incorrect password, resulting in error 422
                                  */
                                 errorAlertText = "Login failed. Please try again."
 
                             }
                         }
-                        //experimenting
-                        //loginViewModel.getEmail()
-                        //.emailString.observe(this, {
-                        //    viewBinding.helloworld.text = it.data.toString()
-                        //}
 
                     }
                 }
+
                 //navController.navigate("three")
             },
             modifier = Modifier
