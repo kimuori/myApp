@@ -5,6 +5,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -70,7 +71,29 @@ interface ApiService {
              "completed": boolean
              "user_id": int (the user account "id") [ignore?]
              "author": string (the user account "name") [ignore]
-             "id": 1859 (the unique to-do id number) [ignore?]
+             "id": 1859 (the unique to-do id number)
+         */
+    /******************************************************/
+    /*
+        REQUEST BODY for POST /api/users/{user_id}/todos/{id}:
+        "description": string
+        "completed": boolean
+
+        NOTE: use apikey,
+        use the provided user_id via "id" and auth the "token".
+
+        @Path is required to replace {user_id} in the URL with a User's unique userId number
+    */
+    @PUT("/api/users/{user_id}/todos/{id}")
+    suspend fun updateTodo(
+        @Path("user_id") userId: Int,
+        @Path("id") todoId: Int,
+        @Query("apiKey") apiKey: String,
+        @Body request: TodoRequestBody
+    ): Todo
+        /*
+            RESPONSE BODY for POST /api/users/{user_id}/todos/{id}:
+
          */
     /******************************************************/
     // NOTE: No Request @Body required.

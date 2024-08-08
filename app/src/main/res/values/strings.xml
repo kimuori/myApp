@@ -29,5 +29,6 @@
     <string name="missing_nameField">Name is required.</string>
     <string name="missing_emailField">Email is required.</string>
     <string name="missing_passwordField">Password is required.</string>
+    <string name="failed_tryAgain">Login failed. Please try again.</string>
 
 </resources>

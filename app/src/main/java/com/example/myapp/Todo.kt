@@ -6,4 +6,5 @@ import com.squareup.moshi.Json
 data class Todo(
     val description: String,
     val completed: Boolean,
+    //val todoId: Int
 )
