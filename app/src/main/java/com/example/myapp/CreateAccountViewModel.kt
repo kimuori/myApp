@@ -11,6 +11,20 @@ class CreateAccountViewModel : ViewModel() {
 
     private val apiService: ApiService = ApiClient.apiService
 
+    //Added for testing
+    private val _userState = MutableLiveData<User>()
+    val userState: LiveData<User> get() = _userState
+
+    //created to a view state
+    private val _viewState = MutableLiveData<ViewState>()
+    val viewState: LiveData<ViewState> get() = _viewState
+
+    sealed class ViewState {
+        data object Loading : ViewState()
+        data class Error(val message: String) : ViewState()
+        data object Success : ViewState()
+    }
+
     private val _nameString: MutableLiveData<String> = MutableLiveData("")
     val nameString : LiveData<String> = _nameString
 
@@ -33,18 +47,24 @@ class CreateAccountViewModel : ViewModel() {
         callback: (User?) -> Unit
     ){
         viewModelScope.launch {
+            _viewState.postValue(ViewState.Loading) //loading
             try{
                 //Response Body returns User
                 val responseBody = apiService.registerUser(
                     apiKey = "7c020d82-368e-4d63-abbc-be98dc7e7730",
                     RegisterRequestBody(email, name, password)
                 )
+                _viewState.postValue(ViewState.Success) //success state
+                _userState.postValue(responseBody)
                 Log.d("CreateAccount", "Response: $responseBody")
                 callback(responseBody)
             } catch (error: retrofit2.HttpException) {
+                _viewState.postValue(ViewState.Error("Failed HTTP Response")) //fail state
                 Log.e("CreateAccount", "HTTP Error: ${error.code()}, ${error.message()}")
                 callback(null)
             } catch (error: Exception){
+                _viewState.postValue(ViewState.Error("Failed, other reasons")) //fail state
+                error.printStackTrace()
                 callback(null)
             }
         }

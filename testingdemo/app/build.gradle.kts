@@ -1,48 +1,62 @@
+import org.jetbrains.kotlin.psi.simpleNameExpressionVisitor
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id("jvm-test-suite")
 }
 
 android {
-    namespace = "com.example.myapp"
+    namespace = "edu.metrostate.testingdemo"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.myapp"
-        minSdk = 21
+        applicationId = "edu.metrostate.testingdemo"
+        minSdk = 24
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
-        
     }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
-    }
-
-    buildFeatures {
-        compose = true
-        viewBinding = true
-    }
-
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+    buildFeatures {
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.1"
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+}
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
 }
 
 dependencies {
@@ -55,30 +69,23 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.moshi)
-    implementation(libs.moshi.kotlin)
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.moshi)
-    implementation(libs.converter.gson)
-    implementation(libs.android.coroutines)
-    implementation(libs.androidx.lifecycle.viewmodel)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.navigation.compose)
-    implementation (libs.okhttp3.logging.interceptor)
-    implementation ("androidx.datastore:datastore-preferences:1.1.1")
-    implementation (libs.material)
-    implementation(libs.firebase.firestore.ktx)
-    testImplementation(libs.junit)
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.retrofit)
 
+    // These are the test dependencies you will need to test the view models and coroutines
     // After updating your libs.versions.toml, update your build.gradle with these dependencies.
+    testImplementation(libs.junit)
     testImplementation(libs.mockk.android)
     testImplementation(libs.mockk.agent.android)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.androidx.arch.core)
     testRuntimeOnly(libs.junit.engine)
+    // end test dependencies
+
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -86,5 +93,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
 }

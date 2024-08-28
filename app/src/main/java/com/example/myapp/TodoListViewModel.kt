@@ -1,7 +1,6 @@
 package com.example.myapp
 
 import android.util.Log
-import androidx.compose.runtime.Composable
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -11,6 +10,24 @@ import kotlinx.coroutines.launch
 class TodoListViewModel : ViewModel() {
 
     private val apiService: ApiService = ApiClient.apiService
+
+    //Added for testing to-do lists state
+    private val _todoListState = MutableLiveData<List<Todo>>()
+    val todoListState: LiveData<List<Todo>> get() = _todoListState
+
+    //Added for testing to-do state
+    private val _todoState = MutableLiveData<Todo>()
+    val todoState: LiveData<Todo> get() = _todoState
+
+    //created to a view state
+    private val _viewState = MutableLiveData<ViewState>()
+    val viewStates: LiveData<ViewState> get() = _viewState
+
+    sealed class ViewState {
+        data object Loading : ViewState()
+        data class Error(val message: String) : ViewState()
+        data object Success : ViewState()
+    }
 
     private val _descriptionString: MutableLiveData<String> = MutableLiveData("")
     val descriptionString: LiveData<String> = _descriptionString
@@ -28,6 +45,7 @@ class TodoListViewModel : ViewModel() {
         callback: (List<Todo>?) -> Unit
     ) {
         viewModelScope.launch {
+            _viewState.postValue(ViewState.Loading) //loading
             try{
                 //Response Body returns List<To-do>
                 val responseBody = apiService.getAllTodos(
@@ -35,12 +53,16 @@ class TodoListViewModel : ViewModel() {
                     bearerToken = bearerToken,
                     userId = userId.toInt()
                 )
+                _viewState.postValue(ViewState.Success) //success state
+                _todoListState.postValue(responseBody)
                 Log.d("ShowAllTodoObjects", "Response: $responseBody")
                 callback(responseBody)
             } catch (error: retrofit2.HttpException) {
+                _viewState.postValue(ViewState.Error("Failed HTTP Response")) //error state
                 Log.e("ShowAllTodoObjects", "HTTP Error: ${error.code()}, ${error.message()}")
                 callback(null)
             } catch (error: Exception){
+                _viewState.postValue(ViewState.Error("Failed, other reasons")) //error state
                 callback(null)
             }
         }
@@ -65,6 +87,7 @@ class TodoListViewModel : ViewModel() {
         callback: (Todo?) -> Unit
     ) {
         viewModelScope.launch {
+            _viewState.postValue(ViewState.Loading) //loading
             try{
                 //Response Body returns To-do object
                 val responseBody = apiService.createTodos(
@@ -73,12 +96,17 @@ class TodoListViewModel : ViewModel() {
                     userId= userId.toInt(),
                     TodoRequestBody(description, completed)
                 )
+                _viewState.postValue(ViewState.Success) //success state
+                _todoState.postValue(responseBody)
                 Log.d("AddingTodoObject", "Response: $responseBody")
                 callback(responseBody)
             } catch (error: retrofit2.HttpException) {
+                _viewState.postValue(ViewState.Error("Failed HTTP Request"))
                 Log.e("AddingTodoObject", "HTTP Error: ${error.code()}, ${error.message()}")
                 callback (null)
             } catch (error: Exception){
+                _viewState.postValue(ViewState.Error("Failed, other reason"))
+                error.printStackTrace()
                 callback(null)
             }
         }
